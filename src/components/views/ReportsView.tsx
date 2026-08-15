@@ -252,26 +252,26 @@ export function ReportsView() {
         </Card>
 
         {/* GST portal e-filing guidance */}
-        <Card className="lg:col-span-4 bg-slate-900 text-white flex flex-col justify-between">
+        <Card className="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white flex flex-col justify-between">
           <div className="space-y-4">
-            <div className="p-2.5 bg-primary-600/10 border border-primary-600/20 text-indigo-400 rounded-xl w-fit">
+            <div className="p-2.5 bg-primary-50 dark:bg-primary-600/10 border border-primary-200 dark:border-primary-600/20 text-indigo-600 dark:text-indigo-400 rounded-xl w-fit">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-lg font-display tracking-tight">Direct Government GST Filing Instruction</h3>
-              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              <h3 className="font-bold text-lg font-display tracking-tight text-slate-900 dark:text-white">Direct Government GST Filing Instruction</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
                 We format your invoice registers exactly into government offline schema JSON files. Simply export, upload to the official GST Common Portal (gst.gov.in), and e-verify!
               </p>
             </div>
           </div>
 
-          <div className="mt-8 pt-4 border-t border-slate-800 space-y-3">
-            <div className="flex gap-2.5 items-center text-xs text-slate-300">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <div className="mt-8 pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+            <div className="flex gap-2.5 items-center text-xs text-slate-700 dark:text-slate-300">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
               <span>GSTR-1 Excel Ledger ready</span>
             </div>
-            <div className="flex gap-2.5 items-center text-xs text-slate-300">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <div className="flex gap-2.5 items-center text-xs text-slate-700 dark:text-slate-300">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
               <span>Auto-apportioned tax codes</span>
             </div>
             

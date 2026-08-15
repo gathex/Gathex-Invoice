@@ -190,7 +190,7 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
   const isLoading = authLoading || localLoading;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col justify-center items-center font-sans relative px-4 py-12 select-none overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col justify-center items-center font-sans relative px-4 py-12 select-none overflow-x-hidden transition-colors duration-300">
       
       {/* Background ambient lighting */}
       <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none z-0" />
@@ -205,7 +205,7 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
       <div className="absolute top-6 left-6 z-10">
         <button
           onClick={() => navigate("landing")}
-          className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-xs font-semibold py-2 px-3 rounded-xl bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/50 cursor-pointer"
+          className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-xs font-semibold py-2 px-3 rounded-xl bg-white dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Home
@@ -214,17 +214,17 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
 
       {/* Auth Card Container */}
       <div className="w-full max-w-md z-10 relative">
-        <Card className="bg-slate-950/85 backdrop-blur-md border-slate-800/90 shadow-2xl overflow-hidden rounded-2xl">
+        <Card className="bg-white dark:bg-slate-900/90 backdrop-blur-md border-slate-200 dark:border-slate-800/90 shadow-2xl overflow-hidden rounded-2xl transition-colors duration-300">
           <CardContent className="p-8 sm:p-10 space-y-6">
             
             {/* Header Brand */}
             <div className="flex flex-col items-center text-center space-y-3">
               <GathexLogo size={52} className="w-13 h-13 shadow-lg shadow-indigo-500/10" />
               <div className="space-y-1">
-                <h2 className="text-2xl font-black font-display tracking-tight bg-gradient-to-r from-white via-indigo-100 to-cyan-100 bg-clip-text text-transparent uppercase">
+                <h2 className="text-2xl font-black font-display tracking-tight bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-800 dark:from-white dark:via-indigo-100 dark:to-cyan-100 bg-clip-text text-transparent uppercase">
                   GATHEX <span className="font-light text-slate-500">INVOICE</span>
                 </h2>
-                <p className="text-xs text-slate-400 font-medium">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                   {mode === "login" && "Sign in to manage your GST tax ledger"}
                   {mode === "register" && "Create your partner workspace account"}
                   {mode === "forgot" && "Recover your account password"}
@@ -233,14 +233,14 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
             </div>
 
             {/* Mode Switcher Tabs */}
-            <div className="flex bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+            <div className="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => { setMode("login"); setError(null); setSuccessMsg(null); }}
                 className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   mode === "login" 
                     ? "bg-primary-600 text-white shadow-md" 
-                    : "text-slate-400 hover:text-white"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 Sign In
@@ -251,7 +251,7 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
                 className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   mode === "register" 
                     ? "bg-primary-600 text-white shadow-md" 
-                    : "text-slate-400 hover:text-white"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 Sign Up
@@ -260,15 +260,15 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
 
             {/* Error & Success Messages */}
             {error && (
-              <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start gap-2.5 leading-relaxed">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-300 text-xs flex items-start gap-2.5 leading-relaxed">
+                <AlertCircle className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}
 
             {successMsg && (
-              <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-start gap-2.5 leading-relaxed">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-300 text-xs flex items-start gap-2.5 leading-relaxed">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0 mt-0.5" />
                 <span>{successMsg}</span>
               </div>
             )}
@@ -279,9 +279,9 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
               {/* Full Name for Registration */}
               {mode === "register" && (
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Full Name</label>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Full Name</label>
                   <div className="relative">
-                    <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                     <Input
                       type="text"
                       placeholder="e.g. Kesav Kumar"
@@ -289,7 +289,7 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
                       onChange={(e) => setDisplayName(e.target.value)}
                       disabled={isLoading}
                       required
-                      className="pl-10 bg-slate-900 border-slate-800 text-white placeholder-slate-500 focus:border-indigo-500 rounded-xl w-full"
+                      className="pl-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 rounded-xl w-full"
                     />
                   </div>
                 </div>
@@ -297,9 +297,9 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
 
               {/* Email Address Input */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Email Address</label>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Email Address</label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                   <Input
                     type="email"
                     placeholder="name@company.com"
@@ -307,7 +307,7 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isLoading}
                     required
-                    className="pl-10 bg-slate-900 border-slate-800 text-white placeholder-slate-500 focus:border-indigo-500 rounded-xl w-full"
+                    className="pl-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 rounded-xl w-full"
                   />
                 </div>
               </div>
@@ -316,19 +316,19 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
               {mode !== "forgot" && (
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Password</label>
+                    <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Password</label>
                     {mode === "login" && (
                       <button
                         type="button"
                         onClick={() => { setMode("forgot"); setError(null); setSuccessMsg(null); }}
-                        className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+                        className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors cursor-pointer"
                       >
                         Forgot Password?
                       </button>
                     )}
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                     <Input
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
@@ -336,12 +336,12 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={isLoading}
                       required
-                      className="pl-10 pr-10 bg-slate-900 border-slate-800 text-white placeholder-slate-500 focus:border-indigo-500 rounded-xl w-full"
+                      className="pl-10 pr-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 rounded-xl w-full"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 cursor-pointer"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -351,16 +351,16 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
 
               {/* Password Strength Meter for Registration */}
               {mode === "register" && password && (
-                <div className="space-y-2 p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+                <div className="space-y-2 p-3 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800">
                   <div className="flex justify-between items-center text-[10px] font-bold">
-                    <span className="text-slate-400 uppercase tracking-wider">Password Strength</span>
+                    <span className="text-slate-500 dark:text-slate-400 uppercase tracking-wider">Password Strength</span>
                     <span className={`font-semibold ${getPasswordStrengthLabel().color.replace('bg-', 'text-')}`}>
                       {getPasswordStrengthLabel().label}
                     </span>
                   </div>
                   
                   {/* Strength Bar */}
-                  <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                     <div 
                       className={`h-full transition-all duration-300 ${getPasswordStrengthLabel().color}`} 
                       style={{ width: `${passwordScore}%` }}
@@ -374,11 +374,11 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
                       return (
                         <div key={idx} className="flex items-center gap-1.5 text-[10px]">
                           {met ? (
-                            <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                            <Check className="w-3 h-3 text-emerald-500 dark:text-emerald-400 shrink-0" />
                           ) : (
-                            <X className="w-3 h-3 text-slate-600 shrink-0" />
+                            <X className="w-3 h-3 text-slate-400 dark:text-slate-600 shrink-0" />
                           )}
-                          <span className={met ? "text-slate-300" : "text-slate-500"}>
+                          <span className={met ? "text-slate-700 dark:text-slate-300" : "text-slate-400 dark:text-slate-500"}>
                             {req.label}
                           </span>
                         </div>
@@ -391,9 +391,9 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
               {/* Confirm Password for Registration */}
               {mode === "register" && (
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Confirm Password</label>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Confirm Password</label>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                     <Input
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="••••••••"
@@ -401,12 +401,12 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       disabled={isLoading}
                       required
-                      className="pl-10 pr-10 bg-slate-900 border-slate-800 text-white placeholder-slate-500 focus:border-indigo-500 rounded-xl w-full"
+                      className="pl-10 pr-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 rounded-xl w-full"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 cursor-pointer"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -422,9 +422,9 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
                     id="rememberEmail"
                     checked={rememberEmail}
                     onChange={(e) => setRememberEmail(e.target.checked)}
-                    className="w-3.5 h-3.5 rounded bg-slate-900 border-slate-700 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                    className="w-3.5 h-3.5 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-primary-600 focus:ring-primary-500 cursor-pointer"
                   />
-                  <label htmlFor="rememberEmail" className="text-xs text-slate-400 font-medium cursor-pointer select-none">
+                  <label htmlFor="rememberEmail" className="text-xs text-slate-600 dark:text-slate-400 font-medium cursor-pointer select-none">
                     Remember my email
                   </label>
                 </div>
@@ -458,16 +458,16 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
             {mode !== "forgot" && (
               <div className="space-y-4">
                 <div className="relative flex py-2 items-center">
-                  <div className="flex-grow border-t border-slate-800"></div>
-                  <span className="flex-shrink mx-3 text-[9px] font-bold text-slate-500 uppercase tracking-widest">Or continue with</span>
-                  <div className="flex-grow border-t border-slate-800"></div>
+                  <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+                  <span className="flex-shrink mx-3 text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Or continue with</span>
+                  <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
                 </div>
 
                 <button
                   type="button"
                   onClick={handleGoogleSignIn}
                   disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/90 text-slate-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 hover:bg-slate-100 dark:hover:bg-slate-950/90 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-semibold transition-all cursor-pointer shadow-sm"
                 >
                   <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12.24 10.285V13.4h6.887C18.2 15.614 15.645 18 12.24 18c-3.86 0-7-3.14-7-7s3.14-7 7-7c1.7 0 3.25.61 4.45 1.615l2.42-2.42C17.29 1.83 14.92 1 12.24 1 6.58 1 2 5.58 2 11.24s4.58 10.24 10.24 10.24c5.9 0 9.81-4.15 9.81-10 0-.67-.06-1.3-.18-1.885H12.24z"/>
@@ -478,14 +478,14 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
             )}
 
             {/* Switcher Footer */}
-            <div className="text-center text-xs text-slate-500 font-semibold pt-2">
+            <div className="text-center text-xs text-slate-500 dark:text-slate-400 font-semibold pt-2">
               {mode === "login" && (
                 <p>
                   Don't have an account?{" "}
                   <button
                     type="button"
                     onClick={() => { setMode("register"); setError(null); setSuccessMsg(null); }}
-                    className="text-indigo-400 hover:text-indigo-300 hover:underline font-bold transition-all cursor-pointer"
+                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline font-bold transition-all cursor-pointer"
                   >
                     Register here
                   </button>
@@ -497,7 +497,7 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
                   <button
                     type="button"
                     onClick={() => { setMode("login"); setError(null); setSuccessMsg(null); }}
-                    className="text-indigo-400 hover:text-indigo-300 hover:underline font-bold transition-all cursor-pointer"
+                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline font-bold transition-all cursor-pointer"
                   >
                     Sign in here
                   </button>
@@ -509,7 +509,7 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
                   <button
                     type="button"
                     onClick={() => { setMode("login"); setError(null); setSuccessMsg(null); }}
-                    className="text-indigo-400 hover:text-indigo-300 hover:underline font-bold transition-all cursor-pointer"
+                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline font-bold transition-all cursor-pointer"
                   >
                     Return to Sign In
                   </button>
@@ -522,7 +522,7 @@ export function AuthView({ mode: initialMode }: AuthViewProps) {
       </div>
 
       {/* Trust Footer */}
-      <div className="mt-8 flex items-center gap-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
+      <div className="mt-8 flex items-center gap-2 text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
         <ShieldCheck className="w-4 h-4 text-indigo-500" />
         <span>Enterprise SSL & Supabase Encrypted Vault</span>
       </div>

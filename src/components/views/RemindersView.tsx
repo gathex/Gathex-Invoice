@@ -670,28 +670,28 @@ export function RemindersView() {
           {/* Secondary Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm text-center">
-              <p className="text-xs text-slate-400 font-semibold uppercase tracking-widest font-sans">Sent Today</p>
-              <h2 className="text-3xl font-black font-display text-white mt-2">{kpis.sentToday}</h2>
-              <p className="text-xs text-slate-500 mt-1">Real-time manual & automatic dispatches</p>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm text-center">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-widest font-sans">Sent Today</p>
+              <h2 className="text-3xl font-black font-display text-slate-900 dark:text-white mt-2">{kpis.sentToday}</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Real-time manual & automatic dispatches</p>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm text-center">
-              <p className="text-xs text-slate-400 font-semibold uppercase tracking-widest font-sans">Total Reminders Sent</p>
-              <h2 className="text-3xl font-black font-display text-white mt-2">{kpis.totalSent}</h2>
-              <p className="text-xs text-slate-500 mt-1">Accumulated historical communications</p>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm text-center">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-widest font-sans">Total Reminders Sent</p>
+              <h2 className="text-3xl font-black font-display text-slate-900 dark:text-white mt-2">{kpis.totalSent}</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Accumulated historical communications</p>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm text-center">
-              <p className="text-xs text-slate-400 font-semibold uppercase tracking-widest font-sans">Collection Success Rate</p>
-              <h2 className="text-3xl font-black font-display text-emerald-400 mt-2">{kpis.collectionRate}%</h2>
-              <p className="text-xs text-slate-500 mt-1">Dues collected post notification</p>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm text-center">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-widest font-sans">Collection Success Rate</p>
+              <h2 className="text-3xl font-black font-display text-emerald-600 dark:text-emerald-400 mt-2">{kpis.collectionRate}%</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Dues collected post notification</p>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm text-center">
-              <p className="text-xs text-slate-400 font-semibold uppercase tracking-widest font-sans">Average Payment Delay</p>
-              <h2 className="text-3xl font-black font-display text-amber-400 mt-2">{kpis.avgDelay}</h2>
-              <p className="text-xs text-slate-500 mt-1">Average invoice settling timeframe</p>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm text-center">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-widest font-sans">Average Payment Delay</p>
+              <h2 className="text-3xl font-black font-display text-amber-600 dark:text-amber-400 mt-2">{kpis.avgDelay}</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Average invoice settling timeframe</p>
             </div>
 
           </div>
@@ -869,14 +869,14 @@ export function RemindersView() {
           </div>
 
           {/* BULK ACTIONS BOX */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 bg-indigo-950 rounded-xl flex items-center justify-center text-indigo-400">
+              <div className="h-10 w-10 bg-indigo-50 dark:bg-indigo-950 rounded-xl flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                 <Bell className="w-5 h-5 animate-bounce" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-white font-display uppercase tracking-widest">Bulk Reminders Engine</h4>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white font-display uppercase tracking-widest">Bulk Reminders Engine</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Select outstanding invoices inside the ledger and dispatch reminders in parallel.
                 </p>
               </div>
@@ -886,7 +886,7 @@ export function RemindersView() {
               <select
                 value={bulkReminderType}
                 onChange={(e) => setBulkReminderType(e.target.value as any)}
-                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-medium text-slate-300 focus:outline-none"
+                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-300 focus:outline-none"
               >
                 <option value="upcoming">Upcoming Due Notice</option>
                 <option value="due_today">Due Today Alert</option>
@@ -898,7 +898,7 @@ export function RemindersView() {
               <select
                 value={bulkChannel}
                 onChange={(e) => setBulkChannel(e.target.value as any)}
-                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-medium text-slate-300 focus:outline-none"
+                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-300 focus:outline-none"
               >
                 <option value="email">Send via Email</option>
                 <option value="whatsapp">Send via WhatsApp</option>
@@ -1317,16 +1317,16 @@ export function RemindersView() {
       {activeTab === "templates" && (
         <div className="space-y-6 animate-fade-in">
           
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-indigo-950 rounded-xl text-indigo-400">
+              <div className="p-3 bg-indigo-50 dark:bg-indigo-950 rounded-xl text-indigo-600 dark:text-indigo-400">
                 <BookOpen className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white font-display uppercase tracking-widest">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white font-display uppercase tracking-widest">
                   Branded Reminder Templates Manager
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Configure corporate templates with dynamic variables like customer names, payments links, and dues balances.
                 </p>
               </div>
