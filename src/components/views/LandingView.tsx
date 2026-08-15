@@ -54,6 +54,28 @@ export function LandingView() {
     }
   };
 
+  // 18 Floating Ambient Background Particles (₹ symbol & document-corner glyphs)
+  const particles = [
+    { left: "4%", duration: "24s", delay: "0s", type: "rupee", color: "#6366f1", opacity: 0.06, drift: "20px", rotate: "12deg", fontSize: "14px" },
+    { left: "9%", duration: "32s", delay: "4s", type: "document", color: "#d97706", opacity: 0.05, drift: "-18px", rotate: "-15deg", fontSize: "12px" },
+    { left: "15%", duration: "28s", delay: "9s", type: "rupee", color: "#6366f1", opacity: 0.07, drift: "25px", rotate: "18deg", fontSize: "16px" },
+    { left: "21%", duration: "36s", delay: "2s", type: "document", color: "#6366f1", opacity: 0.04, drift: "-22px", rotate: "-10deg", fontSize: "11px" },
+    { left: "27%", duration: "25s", delay: "12s", type: "rupee", color: "#d97706", opacity: 0.06, drift: "18px", rotate: "14deg", fontSize: "13px" },
+    { left: "33%", duration: "30s", delay: "6s", type: "document", color: "#6366f1", opacity: 0.05, drift: "-15px", rotate: "22deg", fontSize: "12px" },
+    { left: "40%", duration: "34s", delay: "15s", type: "rupee", color: "#6366f1", opacity: 0.06, drift: "30px", rotate: "-12deg", fontSize: "15px" },
+    { left: "46%", duration: "22s", delay: "3s", type: "document", color: "#d97706", opacity: 0.05, drift: "-25px", rotate: "16deg", fontSize: "13px" },
+    { left: "52%", duration: "38s", delay: "11s", type: "rupee", color: "#6366f1", opacity: 0.07, drift: "22px", rotate: "-20deg", fontSize: "14px" },
+    { left: "58%", duration: "29s", delay: "7s", type: "document", color: "#6366f1", opacity: 0.04, drift: "-16px", rotate: "10deg", fontSize: "12px" },
+    { left: "64%", duration: "33s", delay: "1s", type: "rupee", color: "#d97706", opacity: 0.06, drift: "28px", rotate: "15deg", fontSize: "16px" },
+    { left: "70%", duration: "26s", delay: "14s", type: "document", color: "#6366f1", opacity: 0.05, drift: "-20px", rotate: "-14deg", fontSize: "11px" },
+    { left: "76%", duration: "35s", delay: "8s", type: "rupee", color: "#6366f1", opacity: 0.07, drift: "24px", rotate: "20deg", fontSize: "13px" },
+    { left: "82%", duration: "27s", delay: "17s", type: "document", color: "#d97706", opacity: 0.05, drift: "-14px", rotate: "-18deg", fontSize: "12px" },
+    { left: "88%", duration: "31s", delay: "5s", type: "rupee", color: "#6366f1", opacity: 0.06, drift: "19px", rotate: "11deg", fontSize: "15px" },
+    { left: "94%", duration: "23s", delay: "10s", type: "document", color: "#6366f1", opacity: 0.04, drift: "-26px", rotate: "-8deg", fontSize: "11px" },
+    { left: "37%", duration: "37s", delay: "19s", type: "rupee", color: "#d97706", opacity: 0.05, drift: "21px", rotate: "17deg", fontSize: "14px" },
+    { left: "83%", duration: "29s", delay: "13s", type: "rupee", color: "#6366f1", opacity: 0.06, drift: "-17px", rotate: "-15deg", fontSize: "13px" }
+  ];
+
   const features = [
     {
       icon: <Sparkles className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />,
@@ -183,10 +205,42 @@ export function LandingView() {
   return (
     <div className="relative min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-950 dark:text-slate-100 font-sans transition-colors duration-300 overflow-x-hidden selection:bg-indigo-500/20">
       
-      {/* Background Gradients */}
-      <div className="absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none" />
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-cyan-500/5 dark:bg-cyan-500/3 blur-[120px] pointer-events-none" />
-      <div className="absolute top-3/4 left-0 w-[500px] h-[500px] rounded-full bg-indigo-500/5 dark:bg-indigo-500/3 blur-[120px] pointer-events-none" />
+      {/* Fixed Ambient Background Layer: Sits behind all page content (z-0, pointer-events-none) */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden select-none">
+        {/* Base 3 Gradient Blobs */}
+        <div className="absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-indigo-500/5 to-transparent" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-cyan-500/5 dark:bg-cyan-500/3 blur-[120px]" />
+        <div className="absolute top-3/4 left-0 w-[500px] h-[500px] rounded-full bg-indigo-500/5 dark:bg-indigo-500/3 blur-[120px]" />
+
+        {/* Floating Particles Layer (₹ Glyphs & Folded Document-Corner Icons) */}
+        <div className="absolute inset-0">
+          {particles.map((p, idx) => (
+            <div
+              key={idx}
+              className="landing-particle"
+              style={{
+                left: p.left,
+                animationDuration: p.duration,
+                animationDelay: p.delay,
+                color: p.color,
+                fontSize: p.fontSize,
+                ["--particle-opacity" as any]: p.opacity,
+                ["--particle-drift" as any]: p.drift,
+                ["--particle-rotate" as any]: p.rotate
+              }}
+            >
+              {p.type === "rupee" ? (
+                <span className="font-bold font-mono">₹</span>
+              ) : (
+                <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor">
+                  <path d="M0 0H6L10 4V12H0V0Z" />
+                  <path d="M6 0V4H10" fill="currentColor" fillOpacity="0.4" />
+                </svg>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* 1. STICKY NAVIGATION */}
       <header className="sticky top-0 z-50 w-full bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 transition-colors duration-200">

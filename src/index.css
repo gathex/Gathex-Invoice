@@ -323,3 +323,38 @@ body {
     page-break-inside: avoid !important;
   }
 }
+
+/* Ambient Landing Background Floating Particles (₹ and Document Corner Glyphs) */
+@keyframes float-up-particle {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: var(--particle-opacity, 0.06);
+  }
+  88% {
+    opacity: var(--particle-opacity, 0.06);
+  }
+  100% {
+    transform: translateY(-110vh) translateX(var(--particle-drift, 25px)) rotate(var(--particle-rotate, 15deg));
+    opacity: 0;
+  }
+}
+
+.landing-particle {
+  position: absolute;
+  bottom: -40px;
+  animation: float-up-particle linear infinite;
+  will-change: transform, opacity;
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-particle {
+    animation: none !important;
+    opacity: var(--particle-opacity, 0.04) !important;
+    transform: translateY(-30vh) !important;
+  }
+}
