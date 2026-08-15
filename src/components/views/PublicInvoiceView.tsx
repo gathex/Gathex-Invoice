@@ -837,7 +837,7 @@ export function PublicInvoiceView() {
           {/* LEFT COLUMN: The actual formatted Invoice sheet */}
           <div className="lg:col-span-8 space-y-6">
             <div 
-              className={`${themeClasses.wrapperBg} border ${themeClasses.wrapperBorder} rounded-2xl shadow-lg overflow-hidden relative`} 
+              className={`invoice-paper-sheet ${themeClasses.wrapperBg} border ${themeClasses.wrapperBorder} rounded-2xl shadow-lg overflow-hidden relative`} 
               ref={printRef}
               style={{ borderColor: (themeId === "bold" && accentColor) ? accentColor : undefined }}
             >

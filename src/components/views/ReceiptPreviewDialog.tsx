@@ -229,7 +229,7 @@ export function ReceiptPreviewDialog({ isOpen, onClose, payment }: ReceiptPrevie
               <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Compiling Receipt Ledger...</p>
             </div>
           ) : receipt ? (
-            <div ref={printRef} className="print:m-0 print:p-0">
+            <div ref={printRef} className="invoice-paper-sheet print:m-0 print:p-0">
               <ReceiptDocument receipt={receipt} />
             </div>
           ) : (

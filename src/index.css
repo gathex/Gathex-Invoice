@@ -52,6 +52,41 @@
   --slate-950: #000000; /* Primary Background / body */
 }
 
+/* Printable invoice paper sheet overrides: Ensure paper document previews & PDF exports always use clean light slate tokens, preventing AMOLED dark box remappings */
+.invoice-paper-sheet,
+#invoice-print-container,
+.print-paper-sheet {
+  --slate-50: #f8fafc !important;
+  --slate-100: #f1f5f9 !important;
+  --slate-200: #e2e8f0 !important;
+  --slate-300: #cbd5e1 !important;
+  --slate-400: #94a3b8 !important;
+  --slate-500: #64748b !important;
+  --slate-600: #475569 !important;
+  --slate-700: #334155 !important;
+  --slate-800: #1e293b !important;
+  --slate-900: #0f172a !important;
+  --slate-950: #020617 !important;
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+}
+
+.invoice-paper-sheet *,
+#invoice-print-container *,
+.print-paper-sheet * {
+  --slate-50: #f8fafc !important;
+  --slate-100: #f1f5f9 !important;
+  --slate-200: #e2e8f0 !important;
+  --slate-300: #cbd5e1 !important;
+  --slate-400: #94a3b8 !important;
+  --slate-500: #64748b !important;
+  --slate-600: #475569 !important;
+  --slate-700: #334155 !important;
+  --slate-800: #1e293b !important;
+  --slate-900: #0f172a !important;
+  --slate-950: #020617 !important;
+}
+
 @theme {
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-display: 'Outfit', system-ui, -apple-system, sans-serif;

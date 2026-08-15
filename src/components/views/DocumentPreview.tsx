@@ -630,7 +630,7 @@ ${businessName}`);
               ref={printRef}
               id="invoice-print-container"
               style={{ transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}
-              className={`w-full bg-white text-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-slate-200/60 transition-all print:shadow-none print:border-none print:transform-none ${
+              className={`invoice-paper-sheet w-full bg-white text-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-slate-200/60 transition-all print:shadow-none print:border-none print:transform-none ${
                 themeId === 'classic' ? 'font-serif' : 'font-sans'
               } ${
                 viewMode === "a4" 
