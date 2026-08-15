@@ -51,7 +51,7 @@ export function ProfileView() {
       const { error } = await supabase
         .from('profiles')
         .update({
-          full_name: displayName.trim(),
+          display_name: displayName.trim(),
           phone: phone.trim(),
           language,
           subscription_tier: subTier
