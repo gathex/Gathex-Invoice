@@ -18,10 +18,8 @@ import {
   Sparkles, 
   Calendar, 
   CloudLightning,
-  Lock,
   Moon,
-  Sun,
-  Crown
+  Sun
 } from "lucide-react";
 
 export function ProfileView() {
@@ -82,9 +80,9 @@ export function ProfileView() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+      <div className="space-y-6">
         {/* Profile Card & Info */}
-        <form onSubmit={handleSaveProfile} className="md:col-span-8 space-y-6">
+        <form onSubmit={handleSaveProfile} className="space-y-6">
           <Card className="border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-6">
             <h3 className="font-bold text-slate-900 dark:text-white font-display text-sm uppercase tracking-wider">
               Personal Information
@@ -163,20 +161,6 @@ export function ProfileView() {
             </div>
           </Card>
         </form>
-
-        {/* Account Details Side Panel */}
-        <div className="md:col-span-4 space-y-6">
-          {/* Secure Node Info */}
-          <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-start gap-3 shadow-sm">
-            <Lock className="w-5 h-5 text-indigo-500 mt-0.5 flex-shrink-0" />
-            <div className="space-y-1">
-              <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200 font-display">Identity Security Status</h5>
-              <p className="text-[10px] text-slate-400 leading-normal">
-                Your authorization vector is linked securely using Firebase Auth protocols. Data transactions are encrypted end-to-end to our Firestore shards.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
