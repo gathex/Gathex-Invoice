@@ -3,8 +3,8 @@ import { jsPDF } from "jspdf";
 
 /**
  * High-fidelity PDF Exporter using html2canvas & jsPDF.
- * Temporarily relaxes overflow constraints, CSS transforms, negative margins,
- * and waits for font loading to eliminate ghosting and overlapping text.
+ * Neutralizes transitions, color schemes, overflow constraints, CSS transforms,
+ * negative margins, and waits for font loading to eliminate ghosting and text duplication.
  */
 export async function exportElementToPDF(
   element: HTMLElement,
@@ -12,11 +12,25 @@ export async function exportElementToPDF(
 ): Promise<void> {
   if (!element) return;
 
-  // 1. Preserve original transform
+  // 1. Preserve original transform and force color-scheme light
   const originalTransform = element.style.transform;
   element.style.transform = "none";
 
-  // 2. Locate and temporarily unconstrain overflow / sticky containers
+  const originalColorScheme = element.style.colorScheme;
+  element.style.colorScheme = "light";
+
+  // 2. Inject temporary style tag to freeze all CSS transitions & animations globally during capture
+  const styleTag = document.createElement("style");
+  styleTag.id = "pdf-export-freeze";
+  styleTag.textContent = `
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+  `;
+  document.head.appendChild(styleTag);
+
+  // 3. Locate and temporarily unconstrain overflow / sticky containers
   const modifiedElements: { el: HTMLElement; overflow: string; maxHeight: string; position: string }[] = [];
 
   const targets = element.querySelectorAll<HTMLElement>(
@@ -30,16 +44,16 @@ export async function exportElementToPDF(
       maxHeight: el.style.maxHeight,
       position: el.style.position,
     });
-    if (el.classList.contains('sticky') || el.className.includes('sticky')) {
-      el.style.position = 'static';
+    if (el.classList.contains("sticky") || el.className.includes("sticky")) {
+      el.style.position = "static";
     }
-    el.style.overflow = 'visible';
-    el.style.maxHeight = 'none';
+    el.style.overflow = "visible";
+    el.style.maxHeight = "none";
   });
 
-  // 3. Neutralize negative margins during capture
+  // 4. Neutralize negative margins during capture
   const marginModifiedElements: { el: HTMLElement; marginLeft: string; marginRight: string; marginTop: string }[] = [];
-  const allElements = element.querySelectorAll<HTMLElement>('*');
+  const allElements = element.querySelectorAll<HTMLElement>("*");
   allElements.forEach((el) => {
     const computed = window.getComputedStyle(el);
     const ml = parseFloat(computed.marginLeft);
@@ -52,21 +66,22 @@ export async function exportElementToPDF(
         marginRight: el.style.marginRight,
         marginTop: el.style.marginTop,
       });
-      el.style.marginLeft = '0';
-      el.style.marginRight = '0';
-      el.style.marginTop = '0';
+      el.style.marginLeft = "0";
+      el.style.marginRight = "0";
+      el.style.marginTop = "0";
     }
   });
 
   try {
-    // 4. Wait for all fonts (including custom webfonts) to finish loading before capturing
+    // 5. Wait for transition-disabling & color-scheme styles to settle
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+    // 6. Wait for all fonts (including custom webfonts) to finish loading
     if (document.fonts && document.fonts.ready) {
       await document.fonts.ready;
     }
-    // Small extra buffer for final layout/paint settling
-    await new Promise((resolve) => setTimeout(resolve, 50));
 
-    // 5. Render canvas at scale 2 with 0 scroll offset
+    // 7. Render canvas at scale 2 with 0 scroll offset and explicit white background
     const canvas = await html2canvas(element, {
       scrollX: 0,
       scrollY: 0,
@@ -75,9 +90,10 @@ export async function exportElementToPDF(
       logging: false,
       windowWidth: element.scrollWidth,
       windowHeight: element.scrollHeight,
+      backgroundColor: "#ffffff",
     });
 
-    // 6. Generate PDF
+    // 8. Generate PDF
     const imgData = canvas.toDataURL("image/png");
     const pdf = new jsPDF("p", "mm", "a4");
 
@@ -87,8 +103,11 @@ export async function exportElementToPDF(
     pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
     pdf.save(filename.endsWith(".pdf") ? filename : `${filename}.pdf`);
   } finally {
-    // 7. Restore original styles
+    // 9. Restore original styles and remove freeze tag
     element.style.transform = originalTransform;
+    element.style.colorScheme = originalColorScheme;
+    document.getElementById("pdf-export-freeze")?.remove();
+
     modifiedElements.forEach((item) => {
       item.el.style.overflow = item.overflow;
       item.el.style.maxHeight = item.maxHeight;
