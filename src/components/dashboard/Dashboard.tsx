@@ -422,7 +422,7 @@ export function Dashboard() {
         }
       ];
 
-      await supabase.from('products').insert(dummyProducts);
+      await supabase.from('products_services').insert(dummyProducts);
 
       // 3. Create 3 Invoices
       const today = new Date();
@@ -571,7 +571,7 @@ export function Dashboard() {
     try {
       await supabase.from('sales_documents').delete().eq('business_id', activeBusiness.id);
       await supabase.from('customers').delete().eq('business_id', activeBusiness.id);
-      await supabase.from('products').delete().eq('business_id', activeBusiness.id);
+      await supabase.from('products_services').delete().eq('business_id', activeBusiness.id);
       await supabase.from('document_activities').delete().eq('business_id', activeBusiness.id);
 
       toast.success("Database Reset Complete", "Dashboard metric overlays and physical collections have been completely cleared.");

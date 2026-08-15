@@ -4,12 +4,12 @@ import { ProductService } from "../types";
 export const productService = {
   async getProducts(ownerUid: string, businessId: string): Promise<ProductService[]> {
     const { data, error } = await supabase
-      .from('products')
+      .from('products_services')
       .select('*')
       .eq('business_id', businessId);
 
     if (error) {
-      console.error("Error fetching products:", error);
+      console.error("Error fetching products_services:", error);
       throw error;
     }
 
@@ -34,13 +34,13 @@ export const productService = {
   subscribeToProducts(
     ownerUid: string,
     businessId: string,
-    onNext: (products: ProductService[]) => void,
+    onNext: (products_services: ProductService[]) => void,
     onError?: (err: any) => void
   ): () => void {
     const fetch = async () => {
       try {
-        const products = await this.getProducts(ownerUid, businessId);
-        onNext(products);
+        const products_services = await this.getProducts(ownerUid, businessId);
+        onNext(products_services);
       } catch (err) {
         if (onError) onError(err);
       }
@@ -48,10 +48,10 @@ export const productService = {
 
     fetch();
 
-    const channelName = `products-${businessId}-${crypto.randomUUID()}`;
+    const channelName = `products_services-${businessId}-${crypto.randomUUID()}`;
     const channel = supabase
       .channel(channelName)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'products', filter: `business_id=eq.${businessId}` }, () => fetch())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products_services', filter: `business_id=eq.${businessId}` }, () => fetch())
       .subscribe();
 
     return () => {
@@ -75,7 +75,7 @@ export const productService = {
     };
 
     const { data: res, error } = await supabase
-      .from('products')
+      .from('products_services')
       .insert(payload)
       .select('id')
       .single();
@@ -97,7 +97,7 @@ export const productService = {
     if (data.cessRate !== undefined) payload.cess_rate = Number(data.cessRate);
 
     const { error } = await supabase
-      .from('products')
+      .from('products_services')
       .update(payload)
       .eq('id', id);
 
@@ -106,7 +106,7 @@ export const productService = {
 
   async deleteProduct(id: string): Promise<void> {
     const { error } = await supabase
-      .from('products')
+      .from('products_services')
       .delete()
       .eq('id', id);
 

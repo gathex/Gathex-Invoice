@@ -240,59 +240,69 @@ export const businessService = {
   },
 
   async initializeBusinessSettings(businessId: string): Promise<void> {
-    await supabase.from('business_settings').upsert({
-      business_id: businessId,
-      email_notifications: true,
-      invoice_reminders: true,
-      sms_alerts: false,
-      marketing_emails: false,
-      auto_save_drafts: true
-    });
+    try {
+      await supabase.from('business_settings').upsert({
+        business_id: businessId,
+        email_notifications: true,
+        invoice_reminders: true,
+        sms_alerts: false,
+        marketing_emails: false,
+        auto_save_drafts: true
+      });
+    } catch (_) {}
 
-    await supabase.from('branding_settings').upsert({
-      business_id: businessId,
-      primary_color: "#4f46e5",
-      secondary_color: "#0f172a",
-      theme_selection: "light",
-      invoice_accent_color: "#4f46e5",
-      invoice_footer_text: "Thank you for doing business with us!"
-    });
+    try {
+      await supabase.from('branding_settings').upsert({
+        business_id: businessId,
+        primary_color: "#4f46e5",
+        secondary_color: "#0f172a",
+        theme_selection: "light",
+        invoice_accent_color: "#4f46e5",
+        invoice_footer_text: "Thank you for doing business with us!"
+      });
+    } catch (_) {}
 
-    await supabase.from('payment_settings').upsert({
-      business_id: businessId,
-      bank_name: "",
-      account_holder: "",
-      account_number: "",
-      ifsc: "",
-      branch: "",
-      upi_id: ""
-    });
+    try {
+      await supabase.from('payment_settings').upsert({
+        business_id: businessId,
+        bank_name: "",
+        account_holder: "",
+        account_number: "",
+        ifsc: "",
+        branch: "",
+        upi_id: ""
+      });
+    } catch (_) {}
 
-    await supabase.from('invoice_preferences').upsert({
-      business_id: businessId,
-      prefix: "INV",
-      suffix: "",
-      starting_number: 1,
-      auto_increment: true,
-      financial_year_reset: true,
-      default_due_days: 15,
-      default_gst_rate: 18,
-      default_currency: "INR",
-      decimal_precision: 2,
-      round_off: true,
-      paper_size: "A4",
-      template_selection: "modern"
-    });
+    try {
+      await supabase.from('invoice_preferences').upsert({
+        business_id: businessId,
+        prefix: "INV",
+        suffix: "",
+        starting_number: 1,
+        auto_increment: true,
+        financial_year_reset: true,
+        default_due_days: 15,
+        default_gst_rate: 18,
+        default_currency: "INR",
+        decimal_precision: 2,
+        round_off: true,
+        paper_size: "A4",
+        template_selection: "modern"
+      });
+    } catch (_) {}
 
-    await supabase.from('tax_settings').upsert({
-      business_id: businessId,
-      gst_enabled: true,
-      cgst_rate: 9,
-      sgst_rate: 9,
-      igst_rate: 18,
-      tax_inclusive_pricing: false,
-      gstin_validation_status: "unverified"
-    });
+    try {
+      await supabase.from('tax_settings').upsert({
+        business_id: businessId,
+        gst_enabled: true,
+        cgst_rate: 9,
+        sgst_rate: 9,
+        igst_rate: 18,
+        tax_inclusive_pricing: false,
+        gstin_validation_status: "unverified"
+      });
+    } catch (_) {}
   },
 
   async getBusinessSettings(businessId: string): Promise<BusinessSettings | null> {

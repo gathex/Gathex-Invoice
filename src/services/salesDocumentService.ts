@@ -83,24 +83,27 @@ export const salesDocumentService = {
 
     const payload = items.map((item, idx) => ({
       document_id: docId,
-      product_id: item.productId || null,
+      product_id: (item.productId && item.productId !== "custom" && item.productId.length === 36) ? item.productId : null,
       name: item.name,
       description: item.description || null,
       hsn_sac_code: item.hsnSacCode || null,
-      quantity: item.quantity,
-      price: item.price,
+      quantity: Number(item.quantity || 1),
+      price: Number(item.price || 0),
       unit: item.unit || "Pcs",
-      discount_amount: item.discountAmount || 0,
-      gst_rate: item.gstRate || 0,
-      cgst_amount: item.cgstAmount || 0,
-      sgst_amount: item.sgstAmount || 0,
-      igst_amount: item.igstAmount || 0,
-      total_amount: item.totalAmount || 0,
+      discount_amount: Number(item.discountAmount || 0),
+      gst_rate: Number(item.gstRate || 0),
+      cgst_amount: Number(item.cgstAmount || 0),
+      sgst_amount: Number(item.sgstAmount || 0),
+      igst_amount: Number(item.igstAmount || 0),
+      total_amount: Number(item.totalAmount || 0),
       sort_order: idx
     }));
 
     const { error } = await supabase.from('document_items').insert(payload);
-    if (error) console.error("Error inserting document items:", error);
+    if (error) {
+      console.error("Error inserting document items:", error);
+      throw error;
+    }
   },
 
   // ==========================================
@@ -1259,17 +1262,17 @@ export const salesDocumentService = {
 
   async createDocument(data: any): Promise<string> {
     const docType = data.docType || 'invoice';
+    const validCustomerId = (data.customerId && data.customerId !== "custom" && data.customerId.length === 36) ? data.customerId : null;
     const payload: any = {
       business_id: data.businessId,
       owner_uid: data.ownerUid,
       doc_type: docType,
       doc_number: data.docNumber || data.invoiceNumber || data.quotationNumber || data.proformaNumber || data.creditNoteNumber || data.debitNoteNumber || data.challanNumber || data.poNumber,
       status: data.status || 'draft',
-      customer_id: data.customerId || null,
-      customer_details: data.customerDetails || null,
+      customer_id: validCustomerId,
+      customer_details: data.customerDetails || {},
       issue_date: data.issueDate ? new Date(data.issueDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       due_date: data.dueDate ? new Date(data.dueDate).toISOString().split('T')[0] : (data.expiryDate ? new Date(data.expiryDate).toISOString().split('T')[0] : null),
-      place_of_supply: data.placeOfSupply || null,
       sub_total: Number(data.subTotal || 0),
       total_discount: Number(data.totalDiscount || 0),
       total_taxable_amount: Number(data.totalTaxableAmount || 0),
@@ -1288,7 +1291,10 @@ export const salesDocumentService = {
     };
 
     const { data: res, error } = await supabase.from('sales_documents').insert(payload).select('id').single();
-    if (error) throw error;
+    if (error) {
+      console.error("Error creating sales document:", error);
+      throw error;
+    }
     if (data.items && Array.isArray(data.items)) {
       await this.saveDocumentItems(res.id, data.items);
     }
@@ -1299,11 +1305,12 @@ export const salesDocumentService = {
     const payload: any = {};
     if (data.docNumber !== undefined) payload.doc_number = data.docNumber;
     if (data.status !== undefined) payload.status = data.status;
-    if (data.customerId !== undefined) payload.customer_id = data.customerId;
+    if (data.customerId !== undefined) {
+      payload.customer_id = (data.customerId && data.customerId !== "custom" && data.customerId.length === 36) ? data.customerId : null;
+    }
     if (data.customerDetails !== undefined) payload.customer_details = data.customerDetails;
     if (data.issueDate !== undefined) payload.issue_date = new Date(data.issueDate).toISOString().split('T')[0];
     if (data.dueDate !== undefined) payload.due_date = new Date(data.dueDate).toISOString().split('T')[0];
-    if (data.placeOfSupply !== undefined) payload.place_of_supply = data.placeOfSupply;
     if (data.subTotal !== undefined) payload.sub_total = Number(data.subTotal);
     if (data.totalDiscount !== undefined) payload.total_discount = Number(data.totalDiscount);
     if (data.totalTaxableAmount !== undefined) payload.total_taxable_amount = Number(data.totalTaxableAmount);
@@ -1321,7 +1328,10 @@ export const salesDocumentService = {
     if (data.reason !== undefined) payload.reason = data.reason;
 
     const { error } = await supabase.from('sales_documents').update(payload).eq('id', id);
-    if (error) throw error;
+    if (error) {
+      console.error("Error updating sales document:", error);
+      throw error;
+    }
 
     if (data.items && Array.isArray(data.items)) {
       await this.saveDocumentItems(id, data.items);

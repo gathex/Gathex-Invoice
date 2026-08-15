@@ -173,7 +173,7 @@ export function SalesDocumentsView({ docType = "invoice" }: { docType?: "invoice
     if (!user || !activeBusiness) return;
 
     supabase
-      .from('products')
+      .from('products_services')
       .select('*')
       .eq('business_id', activeBusiness.id)
       .then(({ data, error }) => {
@@ -209,6 +209,7 @@ export function SalesDocumentsView({ docType = "invoice" }: { docType?: "invoice
         .from('sales_documents')
         .select('*')
         .eq('business_id', activeBusiness.id)
+        .eq('doc_type', docType)
         .order('created_at', { ascending: false });
 
       if (error || !docs) {
@@ -247,7 +248,7 @@ export function SalesDocumentsView({ docType = "invoice" }: { docType?: "invoice
           customerPhone: data.customer_details?.phone || "",
           date: data.issue_date || "",
           dueDate: data.due_date || "",
-          placeOfSupply: data.place_of_supply || "",
+          placeOfSupply: typeof addressObj === 'object' ? addressObj.state || "" : mappedAddress,
           items,
           notes: data.notes || "",
           terms: data.terms_conditions || "",
@@ -263,14 +264,14 @@ export function SalesDocumentsView({ docType = "invoice" }: { docType?: "invoice
     fetchDocs();
 
     const channel = supabase
-      .channel(`sales_documents-${activeBusiness.id}-${crypto.randomUUID()}`)
+      .channel(`sales_documents-${activeBusiness.id}-${docType}-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'sales_documents', filter: `business_id=eq.${activeBusiness.id}` }, () => fetchDocs())
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, activeBusiness, docConfig.collection]);
+  }, [user, activeBusiness, docType]);
 
   // Sync place of supply when customer dropdown selection shifts
   useEffect(() => {
