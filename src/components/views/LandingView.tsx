@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "../../context/RouterContext";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -22,18 +22,17 @@ import {
   Cloud, 
   ArrowRight, 
   ChevronRight, 
-  Activity, 
-  IndianRupee, 
   Check, 
   HelpCircle,
   Clock,
   ShieldCheck,
   Zap,
-  Star,
   QrCode,
   Menu,
   X,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Lock,
+  EyeOff
 } from "lucide-react";
 
 export function LandingView() {
@@ -43,16 +42,10 @@ export function LandingView() {
   
   const isRealAuth = user && localStorage.getItem("gathex_auth_mode") === "real";
   
-  // Interactive preview tabs in the Dashboard Showcase section
   const [activeShowcaseTab, setActiveShowcaseTab] = useState<"analytics" | "invoice" | "upi">("analytics");
-  
-  // Mobile navigation drawer toggle
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
-  // FAQ toggle state
   const [openFaqId, setOpenFaqId] = useState<number | null>(0);
 
-  // Smooth scroll handler for anchor links
   const scrollToSection = (id: string) => {
     setMobileMenuOpen(false);
     const element = document.getElementById(id);
@@ -61,7 +54,6 @@ export function LandingView() {
     }
   };
 
-  // Features list
   const features = [
     {
       icon: <Sparkles className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />,
@@ -115,7 +107,6 @@ export function LandingView() {
     }
   ];
 
-  // Steps for the workflow timeline
   const workflowSteps = [
     {
       number: "01",
@@ -139,7 +130,6 @@ export function LandingView() {
     }
   ];
 
-  // Benefits list for "Why Choose" section
   const benefits = [
     {
       title: "Built for Indian Businesses",
@@ -155,11 +145,11 @@ export function LandingView() {
     },
     {
       title: "Professional Templates",
-      description: "Clean, minimalist, Ministry of Finance-compliant designs that make your business look like a fortune 500 company."
+      description: "Clean, minimalist, Ministry of Finance-compliant designs that make your business look like a Fortune 500 company."
     },
     {
       title: "Secure Cloud Platform",
-      description: "Automatic real-time syncing backed by secure Firestore database systems so you never lose your records."
+      description: "Automatic real-time syncing backed by secure database systems so you never lose your records."
     },
     {
       title: "Fully Responsive UI",
@@ -171,7 +161,6 @@ export function LandingView() {
     }
   ];
 
-  // FAQs list
   const faqs = [
     {
       question: "Is GATHEX Invoice compliant with Indian GST rules?",
@@ -187,12 +176,12 @@ export function LandingView() {
     },
     {
       question: "Is my business data secure on GATHEX Invoice?",
-      answer: "Security is our highest priority. All invoices, product lists, and client databases are secured via industry-standard Firebase Authentication and isolated rules on Google Cloud Firestore, ensuring no unauthorized access can occur."
+      answer: "Security is our highest priority. All records are isolated at the database level using Postgres Row-Level Security (RLS), ensuring strict data isolation per business workspace with end-to-end TLS encryption."
     }
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-950 dark:text-slate-100 font-sans transition-colors duration-300 overflow-x-hidden selection:bg-indigo-500/20">
+    <div className="relative min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-950 dark:text-slate-100 font-sans transition-colors duration-300 overflow-x-hidden selection:bg-indigo-500/20">
       
       {/* Background Gradients */}
       <div className="absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none" />
@@ -203,64 +192,40 @@ export function LandingView() {
       <header className="sticky top-0 z-50 w-full bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           
-          {/* Logo */}
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => scrollToSection("hero")}>
             <GathexLogo variant="full" className="w-9 h-9" />
           </div>
 
-          {/* Desktop Nav Links */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600 dark:text-slate-400">
+            <button onClick={() => scrollToSection("comparison")} className="hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">Comparison</button>
             <button onClick={() => scrollToSection("features")} className="hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">Features</button>
-            <button onClick={() => scrollToSection("solutions")} className="hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">Solutions</button>
+            <button onClick={() => scrollToSection("personas")} className="hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">Solutions</button>
             <button onClick={() => scrollToSection("pricing")} className="hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">Pricing</button>
+            <button onClick={() => scrollToSection("security")} className="hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">Security</button>
             <button onClick={() => scrollToSection("faq")} className="hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">FAQ</button>
           </nav>
 
-          {/* Nav Right (Actions) */}
           <div className="hidden md:flex items-center gap-4">
             <ThemeToggle />
-            
             {isRealAuth ? (
-              <Button 
-                variant="primary" 
-                onClick={() => navigate("dashboard")}
-                icon={<ArrowRight className="w-4 h-4" />}
-              >
-                Go to Dashboard
-              </Button>
+              <Button variant="primary" onClick={() => navigate("dashboard")} icon={<ArrowRight className="w-4 h-4" />}>Go to Dashboard</Button>
             ) : (
               <>
-                <Button 
-                  variant="ghost" 
-                  onClick={() => navigate("auth-login")}
-                >
-                  Login
-                </Button>
-                <Button 
-                  variant="primary" 
-                  onClick={() => navigate("auth-register")}
-                  icon={<ArrowRight className="w-4 h-4" />}
-                >
-                  Get Started
-                </Button>
+                <Button variant="ghost" onClick={() => navigate("auth-login")}>Login</Button>
+                <Button variant="primary" onClick={() => navigate("auth-register")} icon={<ArrowRight className="w-4 h-4" />}>Get Started</Button>
               </>
             )}
           </div>
 
-          {/* Mobile Menu Action */}
           <div className="flex md:hidden items-center gap-3">
             <ThemeToggle />
-            <button 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-            >
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
       </header>
 
-      {/* Mobile Navigation Drawer */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div 
@@ -270,39 +235,21 @@ export function LandingView() {
             className="md:hidden fixed inset-x-0 top-[64px] bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800/80 p-5 shadow-xl z-40 space-y-4"
           >
             <div className="flex flex-col gap-4 text-sm font-semibold text-slate-600 dark:text-slate-400">
+              <button onClick={() => scrollToSection("comparison")} className="text-left py-2 hover:text-slate-900 dark:hover:text-white transition-colors">Comparison</button>
               <button onClick={() => scrollToSection("features")} className="text-left py-2 hover:text-slate-900 dark:hover:text-white transition-colors">Features</button>
-              <button onClick={() => scrollToSection("solutions")} className="text-left py-2 hover:text-slate-900 dark:hover:text-white transition-colors">Solutions</button>
+              <button onClick={() => scrollToSection("personas")} className="text-left py-2 hover:text-slate-900 dark:hover:text-white transition-colors">Solutions</button>
               <button onClick={() => scrollToSection("pricing")} className="text-left py-2 hover:text-slate-900 dark:hover:text-white transition-colors">Pricing</button>
+              <button onClick={() => scrollToSection("security")} className="text-left py-2 hover:text-slate-900 dark:hover:text-white transition-colors">Security</button>
               <button onClick={() => scrollToSection("faq")} className="text-left py-2 hover:text-slate-900 dark:hover:text-white transition-colors">FAQ</button>
             </div>
             
             <div className="border-t border-slate-200 dark:border-slate-800 pt-4 flex flex-col gap-3">
               {isRealAuth ? (
-                <Button 
-                  variant="primary" 
-                  onClick={() => navigate("dashboard")}
-                  icon={<ArrowRight className="w-4 h-4" />}
-                  className="w-full"
-                >
-                  Go to Dashboard
-                </Button>
+                <Button variant="primary" onClick={() => navigate("dashboard")} className="w-full">Go to Dashboard</Button>
               ) : (
                 <>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => navigate("auth-login")}
-                    className="w-full"
-                  >
-                    Login
-                  </Button>
-                  <Button 
-                    variant="primary" 
-                    onClick={() => navigate("auth-register")}
-                    icon={<ArrowRight className="w-4 h-4" />}
-                    className="w-full"
-                  >
-                    Get Started Free
-                  </Button>
+                  <Button variant="outline" onClick={() => navigate("auth-login")} className="w-full">Login</Button>
+                  <Button variant="primary" onClick={() => navigate("auth-register")} className="w-full">Get Started</Button>
                 </>
               )}
             </div>
@@ -313,219 +260,172 @@ export function LandingView() {
       {/* 2. HERO SECTION */}
       <section id="hero" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-20 pb-16">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-          
-          {/* Hero Content */}
           <div className="lg:col-span-6 space-y-6 text-center lg:text-left">
-            
-            {/* Promo Badge */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-100/60 dark:bg-primary-500/10 border border-primary-200 dark:border-primary-500/20 text-xs font-bold text-primary-700 dark:text-primary-300">
               <Sparkles className="w-3.5 h-3.5 text-indigo-500 dark:text-accent-500 animate-pulse" />
-              Smart AI Invoicing for Indian SMEs
+              Smart AI Invoicing for Indian SMEs & Freelancers
             </div>
 
-            {/* Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-black tracking-tight leading-[1.1] font-display text-slate-950 dark:text-white">
               Create Professional <span className="bg-gradient-to-r from-primary-600 to-indigo-500 dark:from-primary-400 dark:to-cyan-400 bg-clip-text text-transparent">GST Invoices</span> in Minutes with AI
             </h1>
 
-            {/* Supporting Text */}
             <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg max-w-xl mx-auto lg:mx-0 leading-relaxed font-sans">
               Generate, manage, and track invoices effortlessly. Built specifically for Indian businesses with GST support, AI assistance, payment tracking, and a modern workflow.
             </p>
 
-            {/* CTAs */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
               {isRealAuth ? (
-                <Button 
-                  variant="primary" 
-                  onClick={() => navigate("dashboard")}
-                  icon={<ArrowRight className="w-4 h-4" />}
-                  className="px-8 py-3.5 text-base shadow-lg shadow-primary-500/20"
-                >
-                  Go to Dashboard
-                </Button>
+                <Button variant="primary" onClick={() => navigate("dashboard")} icon={<ArrowRight className="w-4 h-4" />}>Go to Dashboard</Button>
               ) : (
                 <>
-                  <Button 
-                    variant="primary" 
-                    onClick={() => navigate("auth-register")}
-                    icon={<ArrowRight className="w-4 h-4" />}
-                    className="px-8 py-3.5 text-base shadow-lg shadow-primary-500/20"
-                  >
-                    Get Started Free
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => navigate("auth-login")}
-                    className="px-7 py-3.5 text-base"
-                  >
-                    Sign In
-                  </Button>
+                  <Button variant="primary" onClick={() => navigate("auth-register")} icon={<ArrowRight className="w-4 h-4" />}>Get Started Free</Button>
+                  <Button variant="outline" onClick={() => navigate("auth-login")}>Sign In</Button>
                 </>
               )}
             </div>
 
-            {/* Trust Badges */}
             <div className="pt-6 border-t border-slate-200/60 dark:border-slate-800/60 flex flex-wrap justify-center lg:justify-start gap-6 text-xs font-semibold text-slate-500 dark:text-slate-400">
-              <span className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-500" /> 100% Tax Compliant</span>
-              <span className="flex items-center gap-1.5"><Zap className="w-4 h-4 text-amber-500" /> Instant UPI QR Codes</span>
-              <span className="flex items-center gap-1.5"><Star className="w-4 h-4 text-cyan-500 fill-cyan-500/10" /> 5-Star SME Rating</span>
+              <span className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-500" /> GST Tax Compliant</span>
+              <span className="flex items-center gap-1.5"><Zap className="w-4 h-4 text-amber-500" /> Direct UPI QR Codes</span>
+              <span className="flex items-center gap-1.5"><Lock className="w-4 h-4 text-cyan-500" /> Postgres Row-Level Security</span>
             </div>
           </div>
 
-          {/* Hero Visual: SaaS Dashboard Preview */}
           <div className="lg:col-span-6 relative">
             <div className="absolute -inset-1.5 bg-gradient-to-tr from-primary-500 to-indigo-500 rounded-3xl blur-xl opacity-20 pointer-events-none" />
             <div className="relative bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-5 overflow-hidden transition-all duration-300">
-              
-              {/* Fake Window bar */}
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3 mb-4">
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-rose-400" />
                   <div className="w-3 h-3 rounded-full bg-amber-400" />
                   <div className="w-3 h-3 rounded-full bg-emerald-400" />
                 </div>
-                <div className="text-[10px] font-bold text-slate-400 font-mono tracking-wider px-3 py-1 rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50">
-                  GATHEX CORE CLIENT // PREVIEW
-                </div>
+                <div className="text-[10px] font-bold text-slate-400 font-mono tracking-wider px-3 py-1 rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-200/50">GATHEX CORE CLIENT // PREVIEW</div>
               </div>
-
-              {/* Mock Dashboard Contents */}
               <div className="space-y-4">
-                
-                {/* 1. Header & Micro cards */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-indigo-50/50 dark:bg-indigo-950/10 border border-indigo-100 dark:border-indigo-950/40 p-3 rounded-xl">
+                  <div className="bg-indigo-50/50 dark:bg-indigo-950/10 border border-indigo-100 p-3 rounded-xl">
                     <span className="text-[10px] font-bold text-slate-400 block uppercase">Monthly Sales</span>
                     <span className="text-base sm:text-lg font-black text-slate-800 dark:text-slate-200 font-display mt-0.5 block">₹5,82,450.00</span>
-                    <span className="text-[9px] font-bold text-emerald-500 block mt-0.5">+12.4% vs last month</span>
                   </div>
-                  <div className="bg-cyan-50/50 dark:bg-cyan-950/10 border border-cyan-100 dark:bg-cyan-950/40 p-3 rounded-xl">
+                  <div className="bg-cyan-50/50 dark:bg-cyan-950/10 border border-cyan-100 p-3 rounded-xl">
                     <span className="text-[10px] font-bold text-slate-400 block uppercase">Active Invoices</span>
                     <span className="text-base sm:text-lg font-black text-slate-800 dark:text-slate-200 font-display mt-0.5 block">42 raised</span>
-                    <span className="text-[9px] font-bold text-slate-500 block mt-0.5">18 paid, 24 outstanding</span>
                   </div>
                 </div>
-
-                {/* 2. Sample Table */}
-                <div className="bg-slate-50/80 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/80 p-3.5 rounded-xl">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Recent Invoices</span>
-                    <span className="text-[10px] font-bold text-indigo-500 cursor-pointer">View all</span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between py-1.5 border-b border-slate-100 dark:border-slate-800/40">
-                      <div>
-                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">GAT-2026-004</span>
-                        <span className="text-[10px] text-slate-400 block">Acme Solutions Pvt Ltd</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">₹1,12,000.00</span>
-                        <span className="inline-flex px-1.5 py-0.5 text-[9px] font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded-md">Paid</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between py-1.5">
-                      <div>
-                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">GAT-2026-005</span>
-                        <span className="text-[10px] text-slate-400 block">Bharat Textiles Corp</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">₹84,250.00</span>
-                        <span className="inline-flex px-1.5 py-0.5 text-[9px] font-semibold bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 rounded-md">Sent</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Small Analytics bar */}
-                <div className="bg-slate-50/80 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/80 p-3.5 rounded-xl">
+                <div className="bg-slate-50/80 dark:bg-slate-900/50 border border-slate-100 p-3.5 rounded-xl">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-bold text-slate-400 uppercase">Revenue Analytics</span>
                     <span className="text-[9px] font-bold text-indigo-500 flex items-center gap-1">Live <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-ping" /></span>
                   </div>
                   <div className="h-16 flex items-end gap-3.5 justify-between pt-2">
-                    <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-t-lg h-[40%] hover:bg-primary-500 transition-colors" />
-                    <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-t-lg h-[60%] hover:bg-primary-500 transition-colors" />
-                    <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-t-lg h-[50%] hover:bg-primary-500 transition-colors" />
-                    <div className="w-full bg-indigo-500 rounded-t-lg h-[85%]" />
-                    <div className="w-full bg-cyan-400 rounded-t-lg h-[95%]" />
+                    <div className="w-full bg-indigo-500/30 rounded-t h-[40%]" />
+                    <div className="w-full bg-indigo-500/50 rounded-t h-[65%]" />
+                    <div className="w-full bg-indigo-500/70 rounded-t h-[50%]" />
+                    <div className="w-full bg-primary-600 rounded-t h-[95%]" />
+                    <div className="w-full bg-cyan-400 rounded-t h-[80%]" />
                   </div>
                 </div>
-
               </div>
-
             </div>
           </div>
-
         </div>
       </section>
 
-      {/* 3. TRUSTED FEATURES */}
-      <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-200 dark:border-slate-800/80">
-        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <Badge variant="default" className="text-indigo-600 border-indigo-200 dark:text-indigo-400 dark:border-indigo-900/40">Power Packed</Badge>
-          <h2 className="text-3xl sm:text-4xl font-black font-display tracking-tight text-slate-950 dark:text-white">
-            Everything your business needs to excel
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
-            From GST calculation and secure cloud database syncing to interactive reporting and instant digital PDF exports, GATHEX covers all invoice vectors.
+      {/* 2.5 COMPARISON SECTION */}
+      <section id="comparison" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-200 dark:border-slate-800/80">
+        <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
+          <Badge variant="default" className="text-amber-600 border-amber-200 dark:text-amber-400 dark:border-amber-900/40">Realistic Comparison</Badge>
+          <h2 className="text-3xl sm:text-4xl font-black font-display tracking-tight text-slate-950 dark:text-white">GATHEX vs. The Old Way</h2>
+          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed font-sans">
+            Most freelancers and small businesses don't need an enterprise ERP — they just need to replace fragile spreadsheets and lost WhatsApp payment threads.
           </p>
         </div>
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-2 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 font-display">
+            <div className="p-5 md:p-6 flex items-center gap-3 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800">
+              <div className="h-3 w-3 rounded-full bg-rose-500" />
+              <span className="text-base font-extrabold text-slate-700 dark:text-slate-300">Manual / Spreadsheets & WhatsApp</span>
+            </div>
+            <div className="p-5 md:p-6 flex items-center gap-3 bg-indigo-50/50 dark:bg-indigo-950/20">
+              <div className="h-3 w-3 rounded-full bg-emerald-500" />
+              <span className="text-base font-extrabold text-indigo-950 dark:text-indigo-200">GATHEX Invoice</span>
+            </div>
+          </div>
+          <div className="divide-y divide-slate-200 dark:divide-slate-800/80 text-xs sm:text-sm font-sans">
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              <div className="p-5 flex items-start gap-3 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400"><X className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />Manual CGST/SGST/IGST calculation, error-prone.</div>
+              <div className="p-5 flex items-start gap-3 bg-emerald-50/20 dark:bg-emerald-950/10 text-slate-800 dark:text-slate-200 font-semibold"><Check className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />Automatic tax split by state code.</div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              <div className="p-5 flex items-start gap-3 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400"><X className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />No systematic payment tracking.</div>
+              <div className="p-5 flex items-start gap-3 bg-emerald-50/20 dark:bg-emerald-950/10 text-slate-800 dark:text-slate-200 font-semibold"><Check className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />Status tracking: Draft → Sent → Paid → Overdue.</div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              <div className="p-5 flex items-start gap-3 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400"><X className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />Chasing payments over WhatsApp threads.</div>
+              <div className="p-5 flex items-start gap-3 bg-emerald-50/20 dark:bg-emerald-950/10 text-slate-800 dark:text-slate-200 font-semibold"><Check className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />Structured reminder system.</div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        {/* Features Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {features.map((feat, index) => (
-            <motion.div 
-              key={index}
-              whileHover={{ y: -4 }}
-              className="group p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-300 shadow-sm"
-            >
-              <div className="h-10 w-10 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center mb-4 text-indigo-500 dark:text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white dark:group-hover:bg-indigo-500 dark:group-hover:text-slate-950 transition-colors duration-300">
-                {feat.icon}
-              </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-200 mb-2 font-display">
-                {feat.title}
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
-                {feat.description}
-              </p>
+      {/* 3. FEATURES */}
+      <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-slate-200 dark:border-slate-800/80">
+        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+          <Badge variant="default" className="text-primary-600 border-primary-200 dark:text-primary-400 dark:border-primary-900/40">Core Features</Badge>
+          <h2 className="text-3xl sm:text-4xl font-black font-display tracking-tight text-slate-950 dark:text-white">Everything You Need for Effortless Invoicing</h2>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {features.map((feat, idx) => (
+            <motion.div key={idx} whileHover={{ y: -4 }} className="group p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-300 shadow-sm">
+              <div className="h-10 w-10 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/50 flex items-center justify-center mb-4 text-indigo-500 dark:text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-colors">{feat.icon}</div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-200 mb-2 font-display">{feat.title}</h3>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-sans">{feat.description}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* 4. WORKFLOW SECTION */}
+      {/* 3.5 PERSONAS */}
+      <section id="personas" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-slate-200 dark:border-slate-800/80">
+        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+          <Badge variant="default" className="text-indigo-600 border-indigo-200 dark:text-indigo-400 dark:border-indigo-900/40">Tailored Workflows</Badge>
+          <h2 className="text-3xl sm:text-4xl font-black font-display tracking-tight text-slate-950 dark:text-white">Built for how you actually work</h2>
+        </div>
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-7 rounded-3xl shadow-sm hover:border-indigo-400 transition-all duration-300">
+            <div className="h-12 w-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-4"><Users2 className="w-6 h-6" /></div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white font-display mb-4">Freelance Designers & Creators</h3>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Generate professional invoices with dynamic UPI QR codes so clients can settle payments immediately.</p>
+          </div>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-7 rounded-3xl shadow-sm hover:border-emerald-400 transition-all duration-300">
+            <div className="h-12 w-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-4"><Package className="w-6 h-6" /></div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white font-display mb-4">Small Manufacturers & Traders</h3>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Manage item catalogs with HSN codes. Switch between quotes, delivery challans, and final tax invoices.</p>
+          </div>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-7 rounded-3xl shadow-sm hover:border-cyan-400 transition-all duration-300">
+            <div className="h-12 w-12 rounded-2xl bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-100 flex items-center justify-center text-cyan-600 dark:text-cyan-400 mb-4"><Building2 className="w-6 h-6" /></div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white font-display mb-4">Service Providers & Consultants</h3>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Convert estimates into tax invoices with one click. Use reminders to keep overdue bills settled.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. WORKFLOW */}
       <section id="solutions" className="bg-slate-100/60 dark:bg-[#070b13] border-y border-slate-200 dark:border-slate-800/80 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
             <Badge variant="default" className="text-cyan-600 border-cyan-200 dark:text-cyan-400 dark:border-cyan-900/40">Smooth Workflow</Badge>
-            <h2 className="text-3xl sm:text-4xl font-black font-display tracking-tight text-slate-950 dark:text-white">
-              Billing workflow completed in 4 simple steps
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
-              We have optimized the setup pipeline so you can start mailing beautifully compliant tax receipts to your Indian clients today.
-            </p>
+            <h2 className="text-3xl sm:text-4xl font-black font-display tracking-tight text-slate-950 dark:text-white">Billing workflow completed in 4 simple steps</h2>
           </div>
-
-          {/* Workflow Timeline */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 relative">
             {workflowSteps.map((step, idx) => (
               <div key={idx} className="relative group">
-                {/* Horizontal line connector for desktop */}
-                {idx < 3 && (
-                  <div className="hidden lg:block absolute top-7 left-1/2 right-[-50%] h-[2px] bg-slate-200 dark:bg-slate-800 z-0 group-hover:bg-indigo-500/30 transition-colors" />
-                )}
-                
                 <div className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 p-6 rounded-2xl shadow-sm hover:border-indigo-400 dark:hover:border-indigo-900 transition-all duration-300">
-                  <div className="h-11 w-11 rounded-xl bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/30 font-black text-sm flex items-center justify-center mb-4">
-                    {step.number}
-                  </div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-200 mb-2 font-display">
-                    {step.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
-                    {step.description}
-                  </p>
+                  <div className="h-11 w-11 rounded-xl bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 border border-indigo-100 font-black text-sm flex items-center justify-center mb-4 font-display">{step.number}</div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-200 mb-2 font-display">{step.title}</h3>
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-sans">{step.description}</p>
                 </div>
               </div>
             ))}
@@ -533,509 +433,91 @@ export function LandingView() {
         </div>
       </section>
 
-      {/* 5. DASHBOARD SHOWCASE (Interactive Product Section) */}
-      <section id="showcase" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
-          <Badge variant="default" className="text-indigo-600 border-indigo-200 dark:text-indigo-400 dark:border-indigo-900/40">Product Showcase</Badge>
-          <h2 className="text-3xl sm:text-4xl font-black font-display tracking-tight text-slate-950 dark:text-white">
-            Experience the Unified Core Dashboard
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
-            Toggle between the core modules below to preview the actual authenticated application components styled in harmony.
-          </p>
-        </div>
-
-        {/* Tab Controls */}
-        <div className="flex flex-wrap justify-center gap-3 mb-8">
-          <button 
-            onClick={() => setActiveShowcaseTab("analytics")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 border cursor-pointer ${
-              activeShowcaseTab === "analytics" 
-                ? "bg-primary-600 text-white border-primary-600 shadow-md dark:bg-primary-500 dark:border-primary-500" 
-                : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
-            }`}
-          >
-            <TrendingUp className="w-4 h-4" />
-            Revenue Overview
-          </button>
-          
-          <button 
-            onClick={() => setActiveShowcaseTab("invoice")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 border cursor-pointer ${
-              activeShowcaseTab === "invoice" 
-                ? "bg-primary-600 text-white border-primary-600 shadow-md dark:bg-primary-500 dark:border-primary-500" 
-                : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
-            }`}
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            Invoice Analytics & List
-          </button>
-
-          <button 
-            onClick={() => setActiveShowcaseTab("upi")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 border cursor-pointer ${
-              activeShowcaseTab === "upi" 
-                ? "bg-primary-600 text-white border-primary-600 shadow-md dark:bg-primary-500 dark:border-primary-500" 
-                : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
-            }`}
-          >
-            <QrCode className="w-4 h-4" />
-            UPI Settlement QR
-          </button>
-        </div>
-
-        {/* Tab Content Preview Container */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden min-h-[420px]">
-          <div className="p-4 sm:p-6 lg:p-8">
-            <AnimatePresence mode="wait">
-              
-              {/* ANALYTICS SHOWCASE */}
-              {activeShowcaseTab === "analytics" && (
-                <motion.div 
-                  key="analytics"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.25 }}
-                  className="grid lg:grid-cols-12 gap-8 items-center"
-                >
-                  <div className="lg:col-span-5 space-y-4">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold uppercase">
-                      Live Revenue Sync
-                    </div>
-                    <h3 className="text-xl sm:text-2xl font-black font-display text-slate-900 dark:text-white leading-tight">
-                      Monitor Sales & Outstanding Balances in Real-Time
-                    </h3>
-                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
-                      Our dashboard evaluates your ledger instantly, separating intra-state receipts from inter-state SGST and CGST totals, helping you maintain complete financial awareness.
-                    </p>
-                    <ul className="space-y-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" /> Auto computation of net collectibles</li>
-                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" /> Filter metrics by financial quarters</li>
-                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" /> Export ledger audits in single click</li>
-                    </ul>
-                  </div>
-
-                  <div className="lg:col-span-7 bg-slate-50 dark:bg-slate-950 p-4 sm:p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
-                    <div className="flex items-center justify-between mb-6">
-                      <div>
-                        <h4 className="text-xs font-bold text-slate-400 block uppercase">Net Receivables</h4>
-                        <span className="text-xl sm:text-2xl font-black text-slate-950 dark:text-slate-100 font-display mt-0.5 block">₹1,18,320.00</span>
-                      </div>
-                      <span className="inline-flex px-2.5 py-1 text-xs font-semibold bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-full">
-                        4 Invoices Overdue
-                      </span>
-                    </div>
-
-                    {/* Chart graphics */}
-                    <div className="h-44 flex items-end gap-3 justify-between pt-4 border-b border-slate-200 dark:border-slate-800 pb-2">
-                      <div className="w-full bg-indigo-500/20 rounded-t-lg h-[40%] flex items-center justify-center"><span className="text-[10px] text-indigo-700 dark:text-indigo-300 font-bold">40%</span></div>
-                      <div className="w-full bg-indigo-500/30 rounded-t-lg h-[65%] flex items-center justify-center"><span className="text-[10px] text-indigo-700 dark:text-indigo-300 font-bold">65%</span></div>
-                      <div className="w-full bg-indigo-500/50 rounded-t-lg h-[50%] flex items-center justify-center"><span className="text-[10px] text-indigo-800 dark:text-indigo-200 font-bold">50%</span></div>
-                      <div className="w-full bg-primary-600 dark:bg-primary-500 rounded-t-lg h-[90%] flex items-center justify-center"><span className="text-[10px] text-white font-bold">90%</span></div>
-                      <div className="w-full bg-cyan-400 rounded-t-lg h-[75%] flex items-center justify-center"><span className="text-[10px] text-slate-900 font-bold">75%</span></div>
-                    </div>
-                    <div className="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 pt-2 font-bold uppercase tracking-wider">
-                      <span>Mumbai</span>
-                      <span>Delhi</span>
-                      <span>Bengaluru</span>
-                      <span>Chennai</span>
-                      <span>Kolkata</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* INVOICE SHOWCASE */}
-              {activeShowcaseTab === "invoice" && (
-                <motion.div 
-                  key="invoice"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.25 }}
-                  className="grid lg:grid-cols-12 gap-8 items-center"
-                >
-                  <div className="lg:col-span-5 space-y-4">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-cyan-50 dark:bg-cyan-950/30 text-cyan-700 dark:text-cyan-400 text-[10px] font-bold uppercase">
-                      GST Compliance
-                    </div>
-                    <h3 className="text-xl sm:text-2xl font-black font-display text-slate-900 dark:text-white leading-tight">
-                      Standardized Indian Tax Invoice Structures
-                    </h3>
-                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
-                      Our dynamic templates are built to structure official SGST, CGST, and IGST values dynamically, recording precise HSN categorization and client parameters with complete ease.
-                    </p>
-                    <ul className="space-y-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-500" /> Automatic tax-rate splitting from state codes</li>
-                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-500" /> Generates PDF optimized for digital sharing</li>
-                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-500" /> Tracks delivery logs and settled states</li>
-                    </ul>
-                  </div>
-
-                  <div className="lg:col-span-7 bg-slate-50 dark:bg-slate-950 p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3">
-                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-                      <div>
-                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">TAX INVOICE</span>
-                        <span className="text-sm font-bold text-slate-800 dark:text-slate-200">GAT-2026-009</span>
-                      </div>
-                      <span className="inline-flex px-2 py-0.5 text-[10px] font-bold bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 rounded-md">Pending</span>
-                    </div>
-
-                    <div className="space-y-2 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-slate-500 dark:text-slate-400">Buyer Business:</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200">Apex Marketing India (GSTIN: 27AAAAA1111A1Z1)</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-500 dark:text-slate-400">Subtotal:</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200">₹1,50,000.00</span>
-                      </div>
-                      <div className="flex justify-between text-indigo-500">
-                        <span>CGST (9.0%):</span>
-                        <span className="font-bold">₹13,500.00</span>
-                      </div>
-                      <div className="flex justify-between text-indigo-500">
-                        <span>SGST (9.0%):</span>
-                        <span className="font-bold">₹13,500.00</span>
-                      </div>
-                      <div className="border-t border-slate-200 dark:border-slate-800 pt-2 flex justify-between text-sm font-extrabold text-slate-900 dark:text-white">
-                        <span>Grand Total:</span>
-                        <span>₹1,77,000.00</span>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* UPI QR SHOWCASE */}
-              {activeShowcaseTab === "upi" && (
-                <motion.div 
-                  key="upi"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.25 }}
-                  className="grid lg:grid-cols-12 gap-8 items-center"
-                >
-                  <div className="lg:col-span-5 space-y-4">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-400 text-[10px] font-bold uppercase">
-                      Instant Settlements
-                    </div>
-                    <h3 className="text-xl sm:text-2xl font-black font-display text-slate-900 dark:text-white leading-tight">
-                      Dynamic UPI Pay-To-Invoice QR Codes
-                    </h3>
-                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
-                      Let your buyers scan to settle transactions instantly. Our platform generates direct UPI nodes with the exact billing value mapped dynamically to prevent accounting mismatches.
-                    </p>
-                    <ul className="space-y-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-500" /> Supports all standard Indian bank UPI handles</li>
-                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-500" /> Zero commission fee, direct bank settlement</li>
-                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-500" /> Real-time payment verification tags</li>
-                    </ul>
-                  </div>
-
-                  <div className="lg:col-span-7 bg-slate-50 dark:bg-slate-950 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center text-center space-y-4">
-                    <div className="bg-white p-3.5 rounded-xl shadow-md border border-slate-200">
-                      <div className="h-28 w-28 border-2 border-indigo-600 rounded-lg flex items-center justify-center p-2.5">
-                        <QrCode className="w-full h-full text-slate-900" />
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Scan to Settle Invoice</span>
-                      <span className="text-sm font-extrabold text-slate-800 dark:text-slate-200 block mt-0.5">Payable Amount: ₹1,77,000.00</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-            </AnimatePresence>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. WHY CHOOSE GATHEX INVOICE */}
-      <section id="why-choose" className="bg-slate-100/60 dark:bg-[#070b13] border-y border-slate-200 dark:border-slate-800/80 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-            <Badge variant="default" className="text-primary-600 border-primary-200 dark:text-primary-400 dark:border-primary-900/40">Market Advantage</Badge>
-            <h2 className="text-3xl sm:text-4xl font-black font-display tracking-tight text-slate-950 dark:text-white">
-              Why Indian businesses prefer GATHEX Invoice
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
-              We focus on eliminating friction from the tax auditing pipeline, so you can spend less time calculating columns and more time expanding your enterprise.
-            </p>
-          </div>
-
-          {/* Grid benefits */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {benefits.map((benefit, idx) => (
-              <div 
-                key={idx} 
-                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm hover:border-slate-300 dark:hover:border-slate-700/80 transition-all duration-300"
-              >
-                <div className="h-2.5 w-2.5 rounded-full bg-indigo-500 mb-4 animate-pulse" />
-                <h4 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-slate-100 mb-2 font-display">
-                  {benefit.title}
-                </h4>
-                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
-                  {benefit.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 6.5 PRICING SECTION */}
-      <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-slate-200 dark:border-slate-800/80">
+      {/* 6.8 SECURITY */}
+      <section id="security" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-slate-200 dark:border-slate-800/80">
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <Badge variant="default" className="text-primary-600 border-primary-200 dark:text-primary-400 dark:border-primary-900/40">Transparent Pricing</Badge>
-          <h2 className="text-3xl sm:text-4xl font-black font-display tracking-tight text-slate-950 dark:text-white">
-            Pricing Plans Built for Indian Businesses
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
-            Simple, honest pricing with zero hidden charges. Choose the plan that matches your invoicing volume.
-          </p>
+          <Badge variant="default" className="text-emerald-600 border-emerald-200 dark:text-emerald-400 dark:border-emerald-900/40">Data Integrity</Badge>
+          <h2 className="text-3xl sm:text-4xl font-black font-display tracking-tight text-slate-950 dark:text-white">Your data, secured properly</h2>
         </div>
-
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {/* Card 1: Starter */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 p-8 rounded-3xl shadow-sm hover:border-slate-300 dark:hover:border-slate-700/80 transition-all duration-300 flex flex-col justify-between">
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <span className="text-xs font-black uppercase tracking-widest text-indigo-500 block">Starter Plan</span>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white font-display">Freelancers & Small Shops</h3>
-                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-sans">
-                  Best for micro-businesses, freelancers, and small consultants starting their tax compliant journey.
-                </p>
-              </div>
-
-              <div className="flex items-baseline gap-1.5 py-4 border-y border-slate-100 dark:border-slate-800/60">
-                <span className="text-3xl sm:text-4xl font-black text-slate-950 dark:text-white font-display">₹499</span>
-                <span className="text-slate-500 text-xs sm:text-sm font-semibold">/ month</span>
-                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full ml-2">Billed Annually</span>
-              </div>
-
-              <ul className="space-y-3.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                <li className="flex items-center gap-3"><Check className="w-4 h-4 text-emerald-500 flex-shrink-0" /> Up to 100 GST Invoices / month</li>
-                <li className="flex items-center gap-3"><Check className="w-4 h-4 text-emerald-500 flex-shrink-0" /> Auto CGST & SGST calculations</li>
-                <li className="flex items-center gap-3"><Check className="w-4 h-4 text-emerald-500 flex-shrink-0" /> Dynamic UPI Payment QR Code</li>
-                <li className="flex items-center gap-3"><Check className="w-4 h-4 text-emerald-500 flex-shrink-0" /> Direct PDF export & email sharing</li>
-                <li className="flex items-center gap-3"><Check className="w-4 h-4 text-emerald-500 flex-shrink-0" /> Customer & Product registries</li>
-              </ul>
-            </div>
-
-            <div className="pt-8">
-              <Button 
-                variant="outline" 
-                onClick={() => navigate("dashboard")}
-                className="w-full justify-center py-3 text-sm font-bold"
-              >
-                Get Started
-              </Button>
-            </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm space-y-3">
+            <div className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"><ShieldCheck className="w-5 h-5" /></div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 font-display">Postgres Row-Level Security</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-sans">Business data is isolated at the database level using Postgres RLS policies.</p>
           </div>
-
-          {/* Card 2: Growth */}
-          <div className="bg-white dark:bg-slate-900 border-2 border-primary-500 dark:border-primary-500/80 p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col justify-between relative overflow-hidden">
-            <div className="absolute top-4 right-4">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-white bg-primary-600 dark:bg-primary-500 px-2.5 py-1 rounded-full shadow-md">
-                Most Popular
-              </span>
-            </div>
-
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <span className="text-xs font-black uppercase tracking-widest text-primary-600 dark:text-primary-400 block">Growth Plan</span>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white font-display">Product Sellers & Agencies</h3>
-                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-sans">
-                  Perfect for expanding product brands, service teams, and agencies needing comprehensive multi-user sync.
-                </p>
-              </div>
-
-              <div className="flex items-baseline gap-1.5 py-4 border-y border-slate-100 dark:border-slate-800/60">
-                <span className="text-3xl sm:text-4xl font-black text-slate-950 dark:text-white font-display">₹999</span>
-                <span className="text-slate-500 text-xs sm:text-sm font-semibold">/ month</span>
-                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full ml-2">Billed Annually</span>
-              </div>
-
-              <ul className="space-y-3.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                <li className="flex items-center gap-3"><Check className="w-4 h-4 text-primary-500 flex-shrink-0" /> Unlimited GST Invoices & Estimates</li>
-                <li className="flex items-center gap-3"><Check className="w-4 h-4 text-primary-500 flex-shrink-0" /> Priority AI-powered description engine</li>
-                <li className="flex items-center gap-3"><Check className="w-4 h-4 text-primary-500 flex-shrink-0" /> Auto IGST (Inter-state) / CGST / SGST split</li>
-                <li className="flex items-center gap-3"><Check className="w-4 h-4 text-primary-500 flex-shrink-0" /> Dynamic HSN & SAC automated lookup</li>
-                <li className="flex items-center gap-3"><Check className="w-4 h-4 text-primary-500 flex-shrink-0" /> Quarter-wise GSTR Audit spreadsheet reports</li>
-                <li className="flex items-center gap-3"><Check className="w-4 h-4 text-primary-500 flex-shrink-0" /> Premium priority customer support</li>
-              </ul>
-            </div>
-
-            <div className="pt-8">
-              <Button 
-                variant="primary" 
-                onClick={() => navigate("dashboard")}
-                className="w-full justify-center py-3 text-sm font-bold shadow-md shadow-primary-500/10"
-              >
-                Choose Growth
-              </Button>
-            </div>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm space-y-3">
+            <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center"><Lock className="w-5 h-5" /></div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 font-display">Encrypted Connections (TLS)</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-sans">Communications are encrypted in transit using standard HTTPS and TLS protocols.</p>
+          </div>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm space-y-3">
+            <div className="h-10 w-10 rounded-xl bg-cyan-50 dark:bg-cyan-950/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center"><FileDown className="w-5 h-5" /></div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 font-display">Complete Ownership</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-sans">Export your full invoice ledgers and registries to Excel spreadsheets whenever you need local backups.</p>
+          </div>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm space-y-3">
+            <div className="h-10 w-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center"><EyeOff className="w-5 h-5" /></div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 font-display">No Ad Tracking</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-sans">No advertising scripts or behavioral tracking. Your financial transactions remain strictly private.</p>
           </div>
         </div>
       </section>
 
-      {/* 7. CALL TO ACTION (CTA) SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="relative overflow-hidden bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-950 rounded-3xl p-8 sm:p-12 lg:p-16 text-center border border-indigo-900/40 text-white shadow-2xl">
-          {/* Ambient Glows */}
-          <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-primary-500/10 blur-[100px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full bg-cyan-500/10 blur-[100px] pointer-events-none" />
-          
-          <div className="relative z-10 max-w-2xl mx-auto space-y-6">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight font-display leading-tight">
-              Start Sending Professional Invoices Today
-            </h2>
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-lg mx-auto font-sans">
-              Join thousands of Indian product sellers, service providers, freelancers, and small businesses optimizing their revenue flows with GATHEX Invoice.
-            </p>
-
-            <div className="pt-4 flex flex-wrap justify-center gap-4">
-              {user ? (
-                <Button 
-                  variant="primary" 
-                  onClick={() => navigate("dashboard")}
-                  icon={<ArrowRight className="w-4 h-4" style={{ color: "#000000" }} />}
-                  className="px-8 py-3.5 text-base bg-white text-slate-950 hover:bg-slate-100"
-                  spanStyle={{ borderColor: "#000000", color: "#000000" }}
-                >
-                  Go to Dashboard
-                </Button>
-              ) : (
-                <>
-                  <Button 
-                    variant="primary" 
-                    onClick={() => navigate("dashboard")}
-                    icon={<ArrowRight className="w-4 h-4" style={{ color: "#000000" }} />}
-                    className="px-8 py-3.5 text-base bg-white text-slate-950 hover:bg-slate-100"
-                    spanStyle={{ borderColor: "#000000", color: "#000000" }}
-                  >
-                    Create Free Account
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => navigate("dashboard")}
-                    className="px-8 py-3.5 text-base border-white/20 hover:bg-white/10 text-white"
-                  >
-                    Login
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 8. FAQ SECTION */}
+      {/* 8. FAQ */}
       <section id="faq" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-200 dark:border-slate-800/80">
         <div className="text-center max-w-2xl mx-auto mb-12 space-y-4">
           <Badge variant="default" className="text-indigo-600 border-indigo-200 dark:text-indigo-400 dark:border-indigo-900/40">Got Questions?</Badge>
-          <h2 className="text-3xl font-black font-display tracking-tight text-slate-950 dark:text-white">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm leading-relaxed">
-            Quickly resolve inquiries regarding compliance, features, security nodes, and direct digital PDF exports.
-          </p>
+          <h2 className="text-3xl font-black font-display tracking-tight text-slate-950 dark:text-white">Frequently Asked Questions</h2>
         </div>
-
-        {/* FAQ Accordions */}
         <div className="space-y-4">
-          {faqs.map((faq, index) => {
-            const isOpen = openFaqId === index;
-            return (
-              <div 
-                key={index} 
-                className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden transition-all duration-200"
-              >
-                <button
-                  onClick={() => setOpenFaqId(isOpen ? null : index)}
-                  className="w-full flex items-center justify-between p-5 text-left text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
-                >
-                  <span className="flex items-center gap-3">
-                    <HelpCircle className="w-4 h-4 text-indigo-500 flex-shrink-0" />
-                    {faq.question}
-                  </span>
-                  <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform duration-300 flex-shrink-0 ${isOpen ? "rotate-90" : ""}`} />
-                </button>
-                
-                <AnimatePresence initial={false}>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-sans border-t border-slate-100 dark:border-slate-800/40">
-                        {faq.answer}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            );
-          })}
+          {faqs.map((faq, index) => (
+            <div key={index} className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+              <button onClick={() => setOpenFaqId(openFaqId === index ? null : index)} className="w-full flex items-center justify-between p-5 text-left text-sm font-bold text-slate-900 dark:text-slate-100">
+                <span className="flex items-center gap-3"><HelpCircle className="w-4 h-4 text-indigo-500 shrink-0" />{faq.question}</span>
+                <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform ${openFaqId === index ? "rotate-90" : ""}`} />
+              </button>
+              {openFaqId === index && (
+                <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed border-t border-slate-100 dark:border-slate-800/40 font-sans">
+                  {faq.answer}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </section>
 
       {/* 9. FOOTER */}
       <footer className="bg-slate-100 dark:bg-[#070b13] border-t border-slate-200 dark:border-slate-800/80 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-          
-          {/* Logo & Info column */}
           <div className="col-span-2 space-y-4">
-            <div className="flex items-center gap-2.5">
-              <GathexLogo variant="full" className="w-8 h-8" />
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs font-sans">
-              Simplifying compliance, calculations, and payment tracking with modern digital ledger models for active businesses across Bharat.
-            </p>
-            <div className="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Built for Bharat with ❤️
-            </div>
+            <div className="flex items-center gap-2.5"><GathexLogo variant="full" className="w-8 h-8" /></div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs font-sans">Simplifying compliance, calculations, and payment tracking with modern digital ledger models for active businesses across Bharat.</p>
+            <div className="text-xs text-slate-400 font-semibold flex items-center gap-1.5 font-sans"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />Built for Bharat with ❤️</div>
           </div>
-
-          {/* Links: Product */}
-          <div className="space-y-3">
-            <h5 className="text-xs font-black uppercase text-slate-400 tracking-wider">Product</h5>
+          <div className="space-y-3 font-sans">
+            <h5 className="text-xs font-black uppercase text-slate-400 tracking-wider font-display">Product</h5>
             <ul className="space-y-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400">
               <li><button onClick={() => scrollToSection("features")} className="hover:text-slate-900 dark:hover:text-white cursor-pointer">Features</button></li>
-              <li><button onClick={() => scrollToSection("showcase")} className="hover:text-slate-900 dark:hover:text-white cursor-pointer">Pricing</button></li>
-              <li><a href="#roadmap" className="hover:text-slate-900 dark:hover:text-white">Roadmap</a></li>
+              <li><button onClick={() => scrollToSection("pricing")} className="hover:text-slate-900 dark:hover:text-white cursor-pointer">Pricing</button></li>
+              <li><button onClick={() => scrollToSection("security")} className="hover:text-slate-900 dark:hover:text-white cursor-pointer">Security</button></li>
             </ul>
           </div>
-
-          {/* Links: Company */}
-          <div className="space-y-3">
-            <h5 className="text-xs font-black uppercase text-slate-400 tracking-wider">Company</h5>
+          <div className="space-y-3 font-sans">
+            <h5 className="text-xs font-black uppercase text-slate-400 tracking-wider font-display">Company</h5>
             <ul className="space-y-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400">
-              <li><a href="#about" className="hover:text-slate-900 dark:hover:text-white">About</a></li>
-              <li><a href="#contact" className="hover:text-slate-900 dark:hover:text-white">Contact</a></li>
+              <li><button onClick={() => scrollToSection("comparison")} className="hover:text-slate-900 dark:hover:text-white cursor-pointer">Comparison</button></li>
+              <li><button onClick={() => scrollToSection("personas")} className="hover:text-slate-900 dark:hover:text-white cursor-pointer">Solutions</button></li>
             </ul>
           </div>
-
-          {/* Links: Legal */}
-          <div className="space-y-3">
-            <h5 className="text-xs font-black uppercase text-slate-400 tracking-wider">Legal</h5>
+          <div className="space-y-3 font-sans">
+            <h5 className="text-xs font-black uppercase text-slate-400 tracking-wider font-display">Legal</h5>
             <ul className="space-y-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400">
               <li><a href="#privacy" className="hover:text-slate-900 dark:hover:text-white">Privacy Policy</a></li>
               <li><a href="#terms" className="hover:text-slate-900 dark:hover:text-white">Terms of Service</a></li>
             </ul>
           </div>
-
         </div>
-
-        {/* Copyright strip */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 border-t border-slate-200/50 dark:border-slate-800/50 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 border-t border-slate-200/50 dark:border-slate-800/50 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
           <span>© 2026 GATHEX Systems Pvt Ltd. All rights reserved.</span>
           <div className="flex items-center gap-4">
             <a href="#twitter" className="hover:text-slate-900 dark:hover:text-white transition-colors">Twitter</a>
@@ -1044,7 +526,6 @@ export function LandingView() {
           </div>
         </div>
       </footer>
-
     </div>
   );
 }
