@@ -3,8 +3,7 @@ import { ShareInvoiceDialog } from "./ShareInvoiceDialog";
 import { QRCodeSVG } from "qrcode.react";
 import { generateDynamicUpiString } from "../../utils/upiUtils";
 import React, { useState, useRef, useEffect } from "react";
-import { jsPDF } from "jspdf";
-import { toCanvas } from "html-to-image";
+import { exportElementToPDF } from "../../utils/pdfExport";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
@@ -359,20 +358,7 @@ ${businessName}`);
     toast.success("Generating PDF", "Rendering high-fidelity document...");
     
     try {
-      const canvas = await toCanvas(printRef.current, {
-        pixelRatio: 2,
-        backgroundColor: "#ffffff",
-      });
-      
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${invoice.invoiceNumber || "Document"}.pdf`);
-      
+      await exportElementToPDF(printRef.current, `${invoice.invoiceNumber || "Document"}.pdf`);
       toast.success("PDF Downloaded", "Document saved to your device.");
     } catch (err) {
       console.error(err);

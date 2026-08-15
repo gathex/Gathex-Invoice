@@ -3,8 +3,7 @@ import { Dialog } from "../ui/Dialog";
 import { Button } from "../ui/Button";
 import { Payment, PaymentReceipt } from "../../types";
 import { Download, Printer, Share2, Mail, Loader2 } from "lucide-react";
-import { toCanvas } from "html-to-image";
-import { jsPDF } from "jspdf";
+import { exportElementToPDF } from "../../utils/pdfExport";
 import { useToast } from "../ui/Toast";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../supabase/config";
@@ -154,20 +153,7 @@ export function ReceiptPreviewDialog({ isOpen, onClose, payment }: ReceiptPrevie
     toast.success("Generating Receipt PDF", "Compiling high-fidelity graphics layout...");
     
     try {
-      const canvas = await toCanvas(printRef.current, {
-        pixelRatio: 2,
-        backgroundColor: "#ffffff",
-      });
-      
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Receipt_${receipt.receiptNumber}.pdf`);
-      
+      await exportElementToPDF(printRef.current, `Receipt_${receipt.receiptNumber}.pdf`);
       await logReceiptDownload(receipt.id, receipt.businessId, 'business');
       toast.success("Download Complete", "Receipt document saved successfully.");
     } catch (err) {

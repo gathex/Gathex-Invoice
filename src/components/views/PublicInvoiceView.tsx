@@ -35,8 +35,7 @@ import {
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
-import { toCanvas } from "html-to-image";
-import { jsPDF } from "jspdf";
+import { exportElementToPDF } from "../../utils/pdfExport";
 import { useToast } from "../ui/Toast";
 import { QRPaymentCard } from "../ui/QRPaymentCard";
 import { generateDynamicUpiString } from "../../utils/upiUtils";
@@ -329,19 +328,8 @@ export function PublicInvoiceView() {
     toast.success("Rendering PDF", "Starting pixel-perfect PDF export compilation...");
         
     try {
-      const canvas = await toCanvas(printRef.current, {
-        pixelRatio: 2,
-        backgroundColor: "#ffffff",
-      });
-          
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-          
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-          
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${invoice.invoiceNumber}.pdf`);
+      await exportElementToPDF(printRef.current, `${invoice.invoiceNumber}.pdf`);
+      toast.success("PDF Exported", "Document saved successfully.");
     } catch (err) {
       console.error(err);
       toast.error("PDF Failed", "Compilation error while exporting document canvas.");
