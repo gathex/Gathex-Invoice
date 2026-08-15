@@ -3,8 +3,8 @@ import { jsPDF } from "jspdf";
 
 /**
  * High-fidelity PDF Exporter using html2canvas & jsPDF.
- * Temporarily relaxes overflow constraints, CSS transforms, and sticky positioning
- * to eliminate ghosting, overlapping text, and double rendering issues.
+ * Temporarily relaxes overflow constraints, CSS transforms, negative margins,
+ * and waits for font loading to eliminate ghosting and overlapping text.
  */
 export async function exportElementToPDF(
   element: HTMLElement,
@@ -37,8 +37,36 @@ export async function exportElementToPDF(
     el.style.maxHeight = 'none';
   });
 
+  // 3. Neutralize negative margins during capture
+  const marginModifiedElements: { el: HTMLElement; marginLeft: string; marginRight: string; marginTop: string }[] = [];
+  const allElements = element.querySelectorAll<HTMLElement>('*');
+  allElements.forEach((el) => {
+    const computed = window.getComputedStyle(el);
+    const ml = parseFloat(computed.marginLeft);
+    const mr = parseFloat(computed.marginRight);
+    const mt = parseFloat(computed.marginTop);
+    if (ml < 0 || mr < 0 || mt < 0) {
+      marginModifiedElements.push({
+        el,
+        marginLeft: el.style.marginLeft,
+        marginRight: el.style.marginRight,
+        marginTop: el.style.marginTop,
+      });
+      el.style.marginLeft = '0';
+      el.style.marginRight = '0';
+      el.style.marginTop = '0';
+    }
+  });
+
   try {
-    // 3. Render canvas at scale 2 with 0 scroll offset
+    // 4. Wait for all fonts (including custom webfonts) to finish loading before capturing
+    if (document.fonts && document.fonts.ready) {
+      await document.fonts.ready;
+    }
+    // Small extra buffer for final layout/paint settling
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // 5. Render canvas at scale 2 with 0 scroll offset
     const canvas = await html2canvas(element, {
       scrollX: 0,
       scrollY: 0,
@@ -49,7 +77,7 @@ export async function exportElementToPDF(
       windowHeight: element.scrollHeight,
     });
 
-    // 4. Generate PDF
+    // 6. Generate PDF
     const imgData = canvas.toDataURL("image/png");
     const pdf = new jsPDF("p", "mm", "a4");
 
@@ -59,12 +87,17 @@ export async function exportElementToPDF(
     pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
     pdf.save(filename.endsWith(".pdf") ? filename : `${filename}.pdf`);
   } finally {
-    // 5. Restore original styles
+    // 7. Restore original styles
     element.style.transform = originalTransform;
     modifiedElements.forEach((item) => {
       item.el.style.overflow = item.overflow;
       item.el.style.maxHeight = item.maxHeight;
       item.el.style.position = item.position;
+    });
+    marginModifiedElements.forEach((item) => {
+      item.el.style.marginLeft = item.marginLeft;
+      item.el.style.marginRight = item.marginRight;
+      item.el.style.marginTop = item.marginTop;
     });
   }
 }
