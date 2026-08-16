@@ -67,7 +67,7 @@ export function AppLoadingSkeleton() {
       {/* Foreground Centered Logo & Loading Banner */}
       <div className="relative z-20 flex-1 flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 p-8 md:p-10 rounded-3xl shadow-2xl max-w-md w-full flex flex-col items-center gap-6 shadow-indigo-950/40">
-          
+
           {/* App Logo Mark */}
           <div className="relative flex items-center justify-center">
             <div className="w-24 h-24 rounded-2xl bg-slate-900 p-1 shadow-2xl shadow-indigo-600/30 ring-4 ring-indigo-500/30 flex items-center justify-center">

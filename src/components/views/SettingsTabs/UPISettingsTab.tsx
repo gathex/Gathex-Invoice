@@ -193,17 +193,17 @@ export function UPISettingsTab({ activeBusiness }: UPISettingsTabProps) {
             <p className="text-xs text-slate-500 mb-6">Scan this code to test your basic UPI configuration.</p>
             
             {primaryUpiId && merchantName ? (
-              <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                <QRCodeSVG value={upiQrString} size={180} level="M" includeMargin={true} />
+              <div className="bg-white p-3 rounded-xl shadow-xs border border-slate-200">
+                <QRCodeSVG value={upiQrString} size={130} level="M" includeMargin={true} />
               </div>
             ) : (
-              <div className="w-[200px] h-[200px] bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center border border-dashed border-slate-300 dark:border-slate-600">
-                <p className="text-xs text-slate-400 px-4">Provide Primary UPI ID and Merchant Name to generate preview.</p>
+              <div className="w-[160px] h-[160px] bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center border border-dashed border-slate-300 dark:border-slate-600">
+                <p className="text-xs text-slate-400 px-4 text-center">Provide Primary UPI ID and Merchant Name to generate preview.</p>
               </div>
             )}
             
             {primaryUpiId && (
-              <p className="mt-4 text-xs font-mono font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 py-1.5 px-3 rounded-lg border border-slate-200 dark:border-slate-700">
+              <p className="mt-3 text-xs font-mono font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 py-1.5 px-3 rounded-lg border border-slate-200 dark:border-slate-700 text-center">
                 {primaryUpiId}
               </p>
             )}

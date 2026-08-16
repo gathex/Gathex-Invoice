@@ -110,14 +110,14 @@ export function SalesDocumentsView({ docType = "invoice" }: { docType?: "invoice
   const businessAddressStr = activeBusiness?.address 
     ? `${activeBusiness.address.street || ""}, ${activeBusiness.address.city || ""}, ${activeBusiness.address.state || ""} - ${activeBusiness.address.postalCode || ""}`
     : "402, GATHEX Incline Towers, Andheri East, Mumbai, Maharashtra (27) - 400069";
-  const businessBank = activeBusiness?.bankDetails || {
-    accountName: "GATHEX Technologies Pvt Ltd",
-    accountNumber: "50200084928192",
-    bankName: "HDFC Bank Ltd",
-    ifsc: "HDFC0000104",
-    branch: "Andheri East, Mumbai"
+  const businessBank = {
+    accountName: activeBusiness?.bankDetails?.accountName || "",
+    accountNumber: activeBusiness?.bankDetails?.accountNumber || "",
+    bankName: activeBusiness?.bankDetails?.bankName || "",
+    ifsc: activeBusiness?.bankDetails?.ifsc || "",
+    branch: activeBusiness?.bankDetails?.branch || ""
   };
-  const businessUpi = activeBusiness?.upiId || "gathex@hdfcbank";
+  const businessUpi = activeBusiness?.upiId || "";
 
   // Invoice creator form states
   const [invNumber, setInvNumber] = useState("");

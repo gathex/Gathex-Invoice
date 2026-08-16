@@ -55,7 +55,13 @@
 /* Printable invoice paper sheet overrides: Ensure paper document previews & PDF exports always use clean light slate tokens, preventing AMOLED dark box remappings */
 .invoice-paper-sheet,
 #invoice-print-container,
-.print-paper-sheet {
+.print-paper-sheet,
+.dark .invoice-paper-sheet,
+.dark #invoice-print-container,
+.dark .print-paper-sheet,
+html.dark .invoice-paper-sheet,
+html.dark #invoice-print-container,
+html.dark .print-paper-sheet {
   --slate-50: #f8fafc !important;
   --slate-100: #f1f5f9 !important;
   --slate-200: #e2e8f0 !important;
@@ -69,11 +75,18 @@
   --slate-950: #020617 !important;
   color: #0f172a !important;
   background-color: #ffffff !important;
+  color-scheme: light !important;
 }
 
 .invoice-paper-sheet *,
 #invoice-print-container *,
-.print-paper-sheet * {
+.print-paper-sheet *,
+.dark .invoice-paper-sheet *,
+.dark #invoice-print-container *,
+.dark .print-paper-sheet *,
+html.dark .invoice-paper-sheet *,
+html.dark #invoice-print-container *,
+html.dark .print-paper-sheet * {
   --slate-50: #f8fafc !important;
   --slate-100: #f1f5f9 !important;
   --slate-200: #e2e8f0 !important;
@@ -85,6 +98,7 @@
   --slate-800: #1e293b !important;
   --slate-900: #0f172a !important;
   --slate-950: #020617 !important;
+  color-scheme: light !important;
 }
 
 @theme {

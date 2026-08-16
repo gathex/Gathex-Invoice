@@ -10,20 +10,20 @@ interface QRPaymentCardProps {
   size?: number;
 }
 
-export function QRPaymentCard({ upiString, payeeName, upiId, size = 160 }: QRPaymentCardProps) {
+export function QRPaymentCard({ upiString, payeeName, upiId, size = 130 }: QRPaymentCardProps) {
   if (!upiString || !upiId) return null;
 
   return (
-    <Card className="p-6 flex flex-col items-center justify-center text-center bg-white dark:bg-slate-900 border-2 border-indigo-100 dark:border-indigo-900/30">
-      <div className="bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 p-3 rounded-full mb-4">
-        <Smartphone className="w-6 h-6" />
+    <Card className="p-4 flex flex-col items-center justify-center text-center bg-white dark:bg-slate-900 border-2 border-indigo-100 dark:border-indigo-900/30">
+      <div className="bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 p-2.5 rounded-full mb-2">
+        <Smartphone className="w-5 h-5" />
       </div>
-      <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1">
+      <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-0.5">
         Pay via UPI
       </h3>
-      <p className="text-xs text-slate-500 mb-6">Scan with any supported UPI app</p>
+      <p className="text-[11px] text-slate-500 mb-3">Scan with any supported UPI app</p>
       
-      <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm mb-4 inline-block">
+      <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-xs mb-3 inline-block">
         <QRCodeSVG 
           value={upiString} 
           size={size} 
@@ -32,14 +32,14 @@ export function QRPaymentCard({ upiString, payeeName, upiId, size = 160 }: QRPay
         />
       </div>
 
-      <div className="text-xs space-y-1">
-        <p className="font-medium text-slate-700 dark:text-slate-300">{payeeName}</p>
-        <p className="text-slate-500 font-mono">{upiId}</p>
+      <div className="text-xs space-y-0.5 text-center w-full px-2">
+        <p className="font-semibold text-slate-700 dark:text-slate-300 truncate">{payeeName}</p>
+        <p className="text-slate-500 font-mono text-[11px] font-bold truncate">{upiId}</p>
       </div>
       
-      <div className="flex items-center gap-1.5 mt-4 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-emerald-50 dark:bg-emerald-950/20 px-3 py-1.5 rounded-full">
-        <ShieldCheck className="w-3.5 h-3.5" />
-        Secure Payment
+      <div className="flex items-center justify-center gap-1.5 mt-3 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-emerald-50 dark:bg-emerald-950/20 px-3 py-1 rounded-full">
+        <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+        <span>Secure Payment</span>
       </div>
     </Card>
   );

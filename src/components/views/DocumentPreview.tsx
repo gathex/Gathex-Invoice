@@ -25,8 +25,6 @@ import {
   ZoomOut, 
   Maximize2, 
   Minimize2, 
-  Sun, 
-  Moon, 
   QrCode, 
   Check, 
   Send,
@@ -92,13 +90,14 @@ export function DocumentPreview({
   // Preview configuration states
   const [zoom, setZoom] = useState<number>(100);
   const [viewMode, setViewMode] = useState<"a4" | "fluid">("a4");
-  const [bgTheme, setBgTheme] = useState<"light" | "dark">("light");
   const [isSharing, setIsSharing] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isControlsCollapsed, setIsControlsCollapsed] = useState(false);
   const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [upiConfig, setUpiConfig] = useState<any>(null);
   const [brandingSettings, setBrandingSettings] = useState<any>(null);
+  const [paymentSettings, setPaymentSettings] = useState<any>(null);
+
   useEffect(() => {
     if (activeBusiness?.id) {
       import("../../services/businessService").then(m => {
@@ -108,10 +107,8 @@ export function DocumentPreview({
         m.businessService.getBrandingSettings(activeBusiness.id).then(brand => {
           if (brand) setBrandingSettings(brand);
         }).catch(console.error);
-        
-        // dummy block to keep the original regex match if needed:
-        m.businessServiceUpi.getUpiConfig(activeBusiness.id).then(conf => {
-          if (conf && conf.enableUpiPayments) setUpiConfig(conf);
+        m.businessService.getPaymentSettings(activeBusiness.id).then(pay => {
+          if (pay) setPaymentSettings(pay);
         }).catch(console.error);
       });
     }
@@ -189,14 +186,15 @@ export function DocumentPreview({
   const businessPhone = activeBusiness?.phone || "+91 99887 76655";
   const businessEmail = activeBusiness?.email || "accounts@gathex.com";
   const businessWebsite = activeBusiness?.website || "https://gathex.com";
-  const businessBank = activeBusiness?.bankDetails || {
-    accountName: "GATHEX Technologies Pvt Ltd",
-    accountNumber: "50200084928192",
-    bankName: "HDFC Bank Ltd",
-    ifsc: "HDFC0000104",
-    branch: "Andheri East, Mumbai"
+  const businessBank = {
+    accountName: paymentSettings?.accountHolder || activeBusiness?.bankDetails?.accountName || "",
+    accountNumber: paymentSettings?.accountNumber || activeBusiness?.bankDetails?.accountNumber || "",
+    bankName: paymentSettings?.bankName || activeBusiness?.bankDetails?.bankName || "",
+    ifsc: paymentSettings?.ifsc || activeBusiness?.bankDetails?.ifsc || "",
+    branch: paymentSettings?.branch || activeBusiness?.bankDetails?.branch || ""
   };
-  const businessUpi = activeBusiness?.upiId || "gathex@hdfcbank";
+  const hasBankDetails = Boolean(businessBank.bankName && businessBank.accountNumber);
+  const businessUpi = paymentSettings?.upiId || activeBusiness?.upiId || "gathex@hdfcbank";
 
   // Indian currency formatter
   const formatINR = (val: number) => {
@@ -605,25 +603,12 @@ ${businessName}`);
                 {viewMode === "a4" ? <Maximize2 className="w-3 h-3" /> : <Minimize2 className="w-3 h-3" />}
                 <span>{viewMode === "a4" ? "A4 Paper View" : "Full Page height"}</span>
               </button>
-
-              {/* Theme toggle */}
-              <button
-                onClick={() => setBgTheme(bgTheme === "light" ? "dark" : "light")}
-                className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 cursor-pointer"
-                title="Toggle Preview Canvas Theme"
-              >
-                {bgTheme === "light" ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
-              </button>
             </div>
           </div>
 
           {/* DYNAMIC SHADOWED SHEETS WRAPPER */}
           <div 
-            className={`w-full overflow-auto rounded-2xl border transition-all duration-300 flex justify-center py-8 px-4 ${
-              bgTheme === "light" 
-                ? "bg-slate-50 border-slate-200/50" 
-                : "bg-slate-950 border-slate-900/50"
-            }`}
+            className="w-full overflow-auto rounded-2xl border border-slate-200/60 bg-slate-100/70 transition-all duration-300 flex justify-center py-8 px-4"
           >
             {/* INVOICE PAPER BODY */}
             <div 
@@ -746,45 +731,45 @@ ${businessName}`);
               <div className={`overflow-x-auto ${themeId === 'compact' ? 'py-2' : 'py-6'}`}>
                 <table className="w-full text-left border-collapse text-[11px]">
                   <thead>
-                    <tr 
+                    <tr
                       className={`font-bold uppercase tracking-wider ${themeClasses.tableHeader}`}
-                      style={{ 
+                      style={{
                         backgroundColor: (themeId === 'bold' && brandingSettings?.invoiceAccentColor) ? brandingSettings.invoiceAccentColor : undefined,
                         color: (themeId === 'bold' && brandingSettings?.invoiceAccentColor) ? '#ffffff' : undefined
                       }}
                     >
-                      <th className={`${cellPadding} text-center w-10`}>#</th>
-                      <th className={`${cellPadding} min-w-[200px]`}>Goods / Services Description</th>
-                      <th className={`${cellPadding} text-center`}>HSN/SAC</th>
-                      <th className={`${cellPadding} text-right`}>Unit Price</th>
-                      <th className={`${cellPadding} text-center`}>Qty</th>
-                      <th className={`${cellPadding} text-right`}>Discount</th>
-                      <th className={`${cellPadding} text-center`}>GST</th>
-                      <th className={`${cellPadding} text-right`}>Tax Amount</th>
-                      <th className={`${cellPadding} text-right`}>Line Total</th>
+                      <th className={`${cellPadding} text-center w-10 bg-slate-50 text-slate-600`}>#</th>
+                      <th className={`${cellPadding} min-w-[200px] bg-slate-50 text-slate-600`}>Goods / Services Description</th>
+                      <th className={`${cellPadding} text-center bg-slate-50 text-slate-600`}>HSN/SAC</th>
+                      <th className={`${cellPadding} text-right bg-slate-50 text-slate-600`}>Unit Price</th>
+                      <th className={`${cellPadding} text-center bg-slate-50 text-slate-600`}>Qty</th>
+                      <th className={`${cellPadding} text-right bg-slate-50 text-slate-600`}>Discount</th>
+                      <th className={`${cellPadding} text-center bg-slate-50 text-slate-600`}>GST</th>
+                      <th className={`${cellPadding} text-right bg-slate-50 text-slate-600`}>Tax Amount</th>
+                      <th className={`${cellPadding} text-right bg-slate-50 text-slate-600`}>Line Total</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                  <tbody className="divide-y divide-slate-100 font-medium text-slate-700 bg-white">
                     {math.computedItems.map((item, index) => {
                       const rowTax = item.cgst + item.sgst + item.igst;
                       return (
-                        <tr key={index} className="hover:bg-slate-50/30 transition-colors">
-                          <td className={`${cellPadding} text-center text-slate-400 font-mono`}>{index + 1}</td>
-                          <td className={cellPadding}>
+                        <tr key={index} className="bg-white">
+                          <td className={`${cellPadding} text-center text-slate-400 font-mono bg-white`}>{index + 1}</td>
+                          <td className={`${cellPadding} bg-white`}>
                             <div className="font-bold text-slate-900">{item.name}</div>
                             <div className="text-[9px] text-slate-400 mt-0.5">Compliant supply of domestic service/goods</div>
                           </td>
-                          <td className={`${cellPadding} text-center font-mono font-bold text-slate-500`}>{item.hsnSacCode || "—"}</td>
-                          <td className={`${cellPadding} text-right font-mono`}>{formatINR(item.price)}</td>
-                          <td className={`${cellPadding} text-center font-mono`}>{item.quantity} <span className="text-[10px] text-slate-400">{item.unit}</span></td>
-                          <td className={`${cellPadding} text-right font-mono text-rose-500`}>
+                          <td className={`${cellPadding} text-center font-mono font-bold text-slate-500 bg-white`}>{item.hsnSacCode || "—"}</td>
+                          <td className={`${cellPadding} text-right font-mono bg-white`}>{formatINR(item.price)}</td>
+                          <td className={`${cellPadding} text-center font-mono bg-white`}>{item.quantity} <span className="text-[10px] text-slate-400">{item.unit}</span></td>
+                          <td className={`${cellPadding} text-right font-mono text-rose-500 bg-white`}>
                             {item.discountAmount > 0 ? `-${formatINR(item.discountAmount)}` : "—"}
                           </td>
-                          <td className={`${cellPadding} text-center font-mono text-emerald-600 font-extrabold`}>{item.gstRate}%</td>
-                          <td className={`${cellPadding} text-right font-mono font-semibold`} style={{ color: brandingSettings?.invoiceAccentColor || '#6366f1' }}>
+                          <td className={`${cellPadding} text-center font-mono text-emerald-600 font-extrabold bg-white`}>{item.gstRate}%</td>
+                          <td className={`${cellPadding} text-right font-mono font-semibold bg-white`} style={{ color: brandingSettings?.invoiceAccentColor || '#6366f1' }}>
                             {rowTax > 0 ? formatINR(rowTax) : "—"}
                           </td>
-                          <td className={`${cellPadding} text-right font-mono font-bold text-slate-900`}>{formatINR(item.rowTotal)}</td>
+                          <td className={`${cellPadding} text-right font-mono font-bold text-slate-900 bg-white`}>{formatINR(item.rowTotal)}</td>
                         </tr>
                       );
                     })}
@@ -797,24 +782,43 @@ ${businessName}`);
                 
                 {/* Financial and settlement banks */}
                 <div className="md:col-span-7 space-y-4">
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-150 space-y-2">
-                    <h4 className="font-bold text-slate-800 text-[10px] uppercase tracking-wider flex items-center gap-1">
-                      <Building className="w-3.5 h-3.5 text-slate-400" /> Settling Bank & Remittance Instructions
-                    </h4>
-                    <div className="grid grid-cols-3 gap-y-1.5 text-slate-500 text-[11px]">
-                      <span className="font-semibold text-slate-400">Bank Name:</span>
-                      <span className="col-span-2 font-bold text-slate-800">{businessBank.bankName}</span>
-                      
-                      <span className="font-semibold text-slate-400">Account No:</span>
-                      <span className="col-span-2 font-mono font-bold text-slate-800">{businessBank.accountNumber}</span>
-                      
-                      <span className="font-semibold text-slate-400">IFSC Code:</span>
-                      <span className="col-span-2 font-mono font-bold text-indigo-600">{businessBank.ifsc}</span>
-                      
-                      <span className="font-semibold text-slate-400">Account Name:</span>
-                      <span className="col-span-2 font-bold text-slate-800">{businessBank.accountName}</span>
+                  {hasBankDetails ? (
+                    <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200/70 space-y-2">
+                      <h4 className="font-bold text-slate-800 text-[10px] uppercase tracking-wider flex items-center gap-1">
+                        <Building className="w-3.5 h-3.5 text-slate-400" /> Settling Bank & Remittance Instructions
+                      </h4>
+                      <div className="grid grid-cols-3 gap-y-1.5 text-slate-500 text-[11px]">
+                        <span className="font-semibold text-slate-400">Bank Name:</span>
+                        <span className="col-span-2 font-bold text-slate-800">{businessBank.bankName}</span>
+                        
+                        <span className="font-semibold text-slate-400">Account No:</span>
+                        <span className="col-span-2 font-mono font-bold text-slate-800">{businessBank.accountNumber}</span>
+                        
+                        {businessBank.ifsc && (
+                          <>
+                            <span className="font-semibold text-slate-400">IFSC Code:</span>
+                            <span className="col-span-2 font-mono font-bold text-indigo-600">{businessBank.ifsc}</span>
+                          </>
+                        )}
+                        
+                        {businessBank.accountName && (
+                          <>
+                            <span className="font-semibold text-slate-400">Account Name:</span>
+                            <span className="col-span-2 font-bold text-slate-800">{businessBank.accountName}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="p-3.5 bg-amber-50/60 rounded-xl border border-amber-200/60 text-[11px] text-amber-800 space-y-1 print:hidden">
+                      <div className="font-bold flex items-center gap-1.5 text-amber-900 text-[10px]">
+                        <Building className="w-3.5 h-3.5 text-amber-600 shrink-0" /> Bank details not yet configured
+                      </div>
+                      <p className="text-[10px] text-amber-700 leading-normal">
+                        Configure bank account details under <strong>Settings → Payment Settings</strong> to display bank remittance instructions on invoices.
+                      </p>
+                    </div>
+                  )}
 
                   {/* Amount in Words */}
                   <div className="space-y-1">
@@ -823,30 +827,32 @@ ${businessName}`);
                       {numberToWords(math.grandTotal)}
                     </p>
                   </div>
-                </div>
+
+                  {/* Live UPI Settlement QR */}
                   {upiConfig && upiConfig.enableUpiPayments && upiConfig.primaryUpiId && (
-                    <div className="p-4 bg-white rounded-xl border border-slate-200 flex gap-4 items-center">
-                      <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 shrink-0">
+                    <div className="p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+                      <div className="bg-slate-50 p-1.5 rounded-lg border border-slate-100 shrink-0 flex items-center justify-center">
                         <QRCodeSVG 
                           value={generateDynamicUpiString(invoice as any, upiConfig) || ""} 
-                          size={upiConfig.qrDisplaySize || 100} 
+                          size={upiConfig.qrDisplaySize ? Math.min(upiConfig.qrDisplaySize, 80) : 75} 
                           level="M" 
                           includeMargin={false} 
                         />
                       </div>
-                      <div className="space-y-1">
-                        <h4 className="font-bold text-slate-800 text-[10px] uppercase tracking-wider flex items-center gap-1">
-                          <QrCode className="w-3.5 h-3.5 text-indigo-600" /> Scan to Pay
+                      <div className="space-y-1 text-left flex-1 min-w-0">
+                        <h4 className="font-bold text-slate-800 text-[10px] uppercase tracking-wider flex items-center gap-1.5 leading-none">
+                          <QrCode className="w-3.5 h-3.5 text-indigo-600 shrink-0" /> Scan to Pay
                         </h4>
-                        <p className="text-[10px] text-slate-500">Scan using Google Pay, PhonePe, Paytm, BHIM, or any UPI app to settle this invoice.</p>
-                        <p className="text-[10px] font-mono font-bold text-indigo-600 mt-1">{upiConfig.primaryUpiId}</p>
+                        <p className="text-[10px] text-slate-500 leading-tight">Scan using Google Pay, PhonePe, Paytm, BHIM, or any UPI app to settle this invoice.</p>
+                        <p className="text-[10px] font-mono font-bold text-indigo-600 truncate">{upiConfig.primaryUpiId}</p>
                       </div>
                     </div>
                   )}
+                </div>
 
-                  {/* Subtotals & Taxes calculation breakdown */}
+                {/* Subtotals & Taxes calculation breakdown */}
                 <div 
-                  className={`md:col-span-5 space-y-2 text-[11px] text-slate-500 p-4 ${themeClasses.totalsBox}`}
+                  className={`md:col-span-5 space-y-2 text-[11px] text-slate-500 p-4 rounded-xl border border-slate-200/70 bg-slate-50/60 ${themeClasses.totalsBox}`}
                   style={{ 
                     borderLeftColor: (themeId === 'bold' && brandingSettings?.invoiceAccentColor) ? brandingSettings.invoiceAccentColor : undefined,
                     backgroundColor: (themeId === 'bold' && brandingSettings?.invoiceAccentColor) ? `${brandingSettings.invoiceAccentColor}08` : undefined
@@ -899,7 +905,7 @@ ${businessName}`);
                     className="flex justify-between font-black text-sm border-t border-slate-200 pt-3"
                     style={{ color: brandingSettings?.invoiceAccentColor || '#4338ca' }}
                   >
-                    <span className="text-slate-900 font-display font-extrabold uppercase tracking-wide">GRAND TOTAL PAYABLE:</span>
+                    <span className="text-slate-800 font-display font-extrabold uppercase tracking-wide">GRAND TOTAL PAYABLE:</span>
                     <span className="font-mono text-[15px]">{formatINR(math.grandTotal)}</span>
                   </div>
 
@@ -910,38 +916,11 @@ ${businessName}`);
                       {invoice.status === "paid" ? formatINR(math.grandTotal) : formatINR(0)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-xs font-bold text-slate-950 pb-2">
+                  <div className="flex justify-between text-xs font-bold text-slate-800 pb-1">
                     <span>NET BALANCE DUE:</span>
                     <span className="font-mono text-rose-600">
                       {invoice.status === "paid" ? formatINR(0) : formatINR(math.grandTotal)}
                     </span>
-                  </div>
-
-                  {/* Dynamic Settlement QR container */}
-                  <div className="border border-slate-200/60 rounded-xl p-3 bg-slate-50 flex items-center justify-between gap-4 mt-4 print:hidden">
-                    <div className="space-y-1">
-                      <h5 className="font-bold text-indigo-900 uppercase tracking-wider text-[9px] flex items-center gap-1">
-                        <QrCode className="w-3.5 h-3.5" /> GATHEX UPI Quick Pay
-                      </h5>
-                      <p className="text-[8.5px] text-slate-400 leading-normal max-w-[140px]">
-                        Scan to route instant payments through UPI applications securely.
-                      </p>
-                      <p className="font-mono text-[8px] font-bold text-slate-500">{businessUpi}</p>
-                    </div>
-                    <div className="p-1 bg-white rounded-lg border border-slate-200">
-                      <div className="h-14 w-14 border border-slate-950 rounded flex items-center justify-center p-0.5">
-                        <div className="grid grid-cols-4 gap-1 h-full w-full opacity-90">
-                          <div className="bg-slate-950 rounded-xs" />
-                          <div className="bg-slate-950 rounded-xs" />
-                          <div className="bg-transparent" />
-                          <div className="bg-slate-950 rounded-xs" />
-                          <div className="bg-slate-950 rounded-xs" />
-                          <div className="bg-transparent" />
-                          <div className="bg-slate-950 rounded-xs" />
-                          <div className="bg-transparent" />
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>

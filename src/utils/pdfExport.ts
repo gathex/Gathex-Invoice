@@ -91,6 +91,7 @@ export async function exportElementToPDF(
       windowWidth: element.scrollWidth,
       windowHeight: element.scrollHeight,
       backgroundColor: "#ffffff",
+      foreignObjectRendering: true,
     });
 
     // 8. Generate PDF

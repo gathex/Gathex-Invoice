@@ -976,7 +976,7 @@ export function PublicInvoiceView() {
                         const taxTotal = (item.cgstAmount || 0) + (item.sgstAmount || 0) + (item.igstAmount || 0);
 
                         return (
-                          <tr key={idx} className="hover:bg-slate-50/40">
+                          <tr key={idx}>
                             <td className="py-4 px-3">
                               <p className="font-bold text-slate-900 text-sm">{item.name}</p>
                               {item.description && (
