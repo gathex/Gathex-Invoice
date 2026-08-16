@@ -54,6 +54,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         createdAt: profileRow?.created_at ? new Date(profileRow.created_at) : new Date(),
         updatedAt: profileRow?.updated_at ? new Date(profileRow.updated_at) : new Date(),
         activeBusinessId: profileRow?.active_business_id || "",
+        subscriptionTier: profileRow?.subscription_tier || "free",
+        phone: profileRow?.phone || "",
+        language: profileRow?.language || "en",
         themePreference: profileRow?.theme_preference
       };
 

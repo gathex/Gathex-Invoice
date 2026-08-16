@@ -22,6 +22,17 @@ import {
   Sun
 } from "lucide-react";
 
+export const TIER_DISPLAY_NAMES: Record<string, string> = {
+  free: "Free Plan",
+  starter: "Starter",
+  growth: "Growth Plan"
+};
+
+export const getTierDisplayName = (tier?: string): string => {
+  if (!tier) return TIER_DISPLAY_NAMES.free;
+  return TIER_DISPLAY_NAMES[tier.toLowerCase()] || tier;
+};
+
 export function ProfileView() {
   const { user, profile, refreshProfile } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -30,7 +41,7 @@ export function ProfileView() {
   const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [phone, setPhone] = useState(profile?.phone || "");
   const [language, setLanguage] = useState(profile?.language || "en");
-  const [subTier, setSubTier] = useState(profile?.subscriptionTier || "Pro Tier");
+  const [subTier, setSubTier] = useState(profile?.subscriptionTier || "free");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -38,7 +49,7 @@ export function ProfileView() {
       setDisplayName(profile.displayName || user?.displayName || "");
       setPhone(profile.phone || "");
       setLanguage(profile.language || "en");
-      setSubTier(profile.subscriptionTier || "Pro Tier");
+      setSubTier(profile.subscriptionTier || "free");
     }
   }, [profile, user]);
 
@@ -84,9 +95,14 @@ export function ProfileView() {
         {/* Profile Card & Info */}
         <form onSubmit={handleSaveProfile} className="space-y-6">
           <Card className="border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-6">
-            <h3 className="font-bold text-slate-900 dark:text-white font-display text-sm uppercase tracking-wider">
-              Personal Information
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-slate-900 dark:text-white font-display text-sm uppercase tracking-wider">
+                Personal Information
+              </h3>
+              <Badge variant="accent" className="font-mono text-xs px-2.5 py-0.5 font-bold uppercase tracking-wider">
+                Active Tier: {getTierDisplayName(subTier)}
+              </Badge>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
@@ -105,7 +121,7 @@ export function ProfileView() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Input
                 label="Phone Number"
                 placeholder="+91 XXXXX XXXXX"
@@ -121,6 +137,16 @@ export function ProfileView() {
                   { value: "en-IN", label: "English (India)" },
                   { value: "en-US", label: "English (US)" },
                   { value: "hi-IN", label: "Hindi (हिंदी)" }
+                ]}
+              />
+              <Select
+                label="Subscription Tier"
+                value={subTier}
+                onChange={(e) => setSubTier(e.target.value)}
+                options={[
+                  { value: "free", label: "Free Plan" },
+                  { value: "starter", label: "Starter" },
+                  { value: "growth", label: "Growth Plan" }
                 ]}
               />
             </div>

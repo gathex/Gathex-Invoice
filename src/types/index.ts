@@ -13,6 +13,9 @@ export interface UserProfile {
   createdAt: Date;
   updatedAt: Date;
   activeBusinessId?: string;
+  subscriptionTier?: 'free' | 'starter' | 'growth' | string;
+  phone?: string;
+  language?: string;
   themePreference?: 'light' | 'dark' | 'system';
 }
 
