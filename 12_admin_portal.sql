@@ -160,11 +160,11 @@ BEGIN
 
   SELECT count(*) INTO v_total_invoices 
   FROM public.sales_documents 
-  WHERE is_archived = false;
+  WHERE status NOT IN ('void', 'cancelled');
 
-  SELECT COALESCE(sum(total_amount), 0) INTO v_total_revenue 
+  SELECT COALESCE(sum(grand_total), 0) INTO v_total_revenue 
   FROM public.sales_documents 
-  WHERE payment_status = 'paid' AND is_archived = false;
+  WHERE status = 'paid';
 
   SELECT count(*) INTO v_free_count FROM public.profiles WHERE COALESCE(subscription_tier, 'free') = 'free';
   SELECT count(*) INTO v_starter_count FROM public.profiles WHERE subscription_tier = 'starter';
@@ -251,7 +251,7 @@ BEGIN
       p.created_at,
       au.role::text as admin_role,
       (SELECT count(*) FROM public.businesses b WHERE b.owner_uid = p.id AND b.is_archived = false) as businesses_count,
-      (SELECT count(*) FROM public.sales_documents s WHERE s.owner_uid = p.id AND s.is_archived = false) as invoices_count,
+      (SELECT count(*) FROM public.sales_documents s WHERE s.owner_uid = p.id AND s.status NOT IN ('void', 'cancelled')) as invoices_count,
       (SELECT phone FROM public.businesses b WHERE b.owner_uid = p.id LIMIT 1) as phone
     FROM public.profiles p
     LEFT JOIN public.admin_users au ON au.id = p.id

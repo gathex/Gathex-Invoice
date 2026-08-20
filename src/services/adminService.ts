@@ -124,7 +124,7 @@ export const adminService = {
   async fallbackOverviewStats(): Promise<AdminOverviewStats> {
     const { data: profiles } = await supabase.from('profiles').select('*');
     const { data: businesses } = await supabase.from('businesses').select('*').eq('is_archived', false);
-    const { data: invoices } = await supabase.from('sales_documents').select('*').eq('is_archived', false);
+    const { data: invoices } = await supabase.from('sales_documents').select('*').not('status', 'in', '(void,cancelled)');
 
     const totalUsers = profiles?.length || 0;
     const totalBusinesses = businesses?.length || 0;
@@ -137,8 +137,8 @@ export const adminService = {
     const activeThisMonth = profiles?.filter(p => new Date(p.created_at) >= startOfMonth).length || 0;
     
     const totalRevenue = invoices
-      ?.filter(i => i.payment_status === 'paid')
-      .reduce((sum, i) => sum + (Number(i.total_amount) || 0), 0) || 0;
+      ?.filter(i => i.status === 'paid')
+      .reduce((sum, i) => sum + (Number(i.grand_total) || Number(i.amount_paid) || 0), 0) || 0;
 
     let freeCount = 0;
     let starterCount = 0;
@@ -212,7 +212,7 @@ export const adminService = {
       if (b.phone && !phoneMap.has(b.owner_uid)) phoneMap.set(b.owner_uid, b.phone);
     });
 
-    const { data: invoices } = await supabase.from('sales_documents').select('owner_uid').eq('is_archived', false);
+    const { data: invoices } = await supabase.from('sales_documents').select('owner_uid').not('status', 'in', '(void,cancelled)');
     const invoiceCountMap = new Map<string, number>();
     invoices?.forEach(i => {
       invoiceCountMap.set(i.owner_uid, (invoiceCountMap.get(i.owner_uid) || 0) + 1);

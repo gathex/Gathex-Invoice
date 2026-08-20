@@ -140,7 +140,7 @@ export function AdminUsersView() {
     try {
       const [bizRes, docRes] = await Promise.all([
         supabase.from('businesses').select('*').eq('owner_uid', userItem.id).eq('is_archived', false),
-        supabase.from('sales_documents').select('*').eq('owner_uid', userItem.id).eq('is_archived', false).order('created_at', { ascending: false }).limit(20)
+        supabase.from('sales_documents').select('*').eq('owner_uid', userItem.id).not('status', 'in', '(void,cancelled)').order('created_at', { ascending: false }).limit(20)
       ]);
       setUserBusinesses(bizRes.data || []);
       setUserInvoices(docRes.data || []);
@@ -571,18 +571,18 @@ export function AdminUsersView() {
                         <div key={inv.id} className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between text-xs">
                           <div>
                             <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
-                              {inv.document_number}
+                              {inv.doc_number || inv.document_number || 'Doc'}
                             </span>
-                            <span className="ml-2 text-slate-400">({inv.customer_name || 'Client'})</span>
+                            <span className="ml-2 text-slate-400">({inv.customer_details?.name || inv.customer_name || inv.vendor_name || 'Client'})</span>
                           </div>
                           <div className="flex items-center gap-3">
                             <span className="font-mono font-bold text-slate-900 dark:text-slate-100">
-                              ₹{Number(inv.total_amount || 0).toLocaleString('en-IN')}
+                              ₹{Number(inv.grand_total ?? inv.total_amount ?? 0).toLocaleString('en-IN')}
                             </span>
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                              inv.payment_status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                              (inv.status || inv.payment_status) === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
                             }`}>
-                              {inv.payment_status || 'draft'}
+                              {inv.status || inv.payment_status || 'draft'}
                             </span>
                           </div>
                         </div>

@@ -56,7 +56,7 @@ export function AdminDashboard() {
     loadData();
   }, []);
 
-  if (loading) {
+  if (loading || !stats) {
     return (
       <div className="space-y-6 animate-pulse">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
@@ -89,7 +89,7 @@ export function AdminDashboard() {
   const statCards = [
     {
       title: "Total Users",
-      value: stats?.total_users.toLocaleString() ?? "0",
+      value: (stats?.total_users ?? 0).toLocaleString(),
       change: "+Registered",
       icon: <Users className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />,
       bg: "bg-indigo-500/10 dark:bg-indigo-500/20",
@@ -97,7 +97,7 @@ export function AdminDashboard() {
     },
     {
       title: "Total Businesses",
-      value: stats?.total_businesses.toLocaleString() ?? "0",
+      value: (stats?.total_businesses ?? 0).toLocaleString(),
       change: "Active Workspaces",
       icon: <Building2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />,
       bg: "bg-purple-500/10 dark:bg-purple-500/20",
@@ -105,7 +105,7 @@ export function AdminDashboard() {
     },
     {
       title: "Active This Month",
-      value: stats?.active_this_month.toLocaleString() ?? "0",
+      value: (stats?.active_this_month ?? 0).toLocaleString(),
       change: "New / Active Users",
       icon: <UserCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />,
       bg: "bg-emerald-500/10 dark:bg-emerald-500/20",
@@ -113,7 +113,7 @@ export function AdminDashboard() {
     },
     {
       title: "Total Invoices",
-      value: stats?.total_invoices.toLocaleString() ?? "0",
+      value: (stats?.total_invoices ?? 0).toLocaleString(),
       change: "Generated Platform-wide",
       icon: <FileText className="w-5 h-5 text-amber-600 dark:text-amber-400" />,
       bg: "bg-amber-500/10 dark:bg-amber-500/20",
@@ -138,10 +138,10 @@ export function AdminDashboard() {
   ];
 
   const tierBreakdown = stats?.tier_breakdown || { free: 0, starter: 0, growth: 0 };
-  const totalTierUsers = (tierBreakdown.free + tierBreakdown.starter + tierBreakdown.growth) || 1;
-  const freePct = Math.round((tierBreakdown.free / totalTierUsers) * 100);
-  const starterPct = Math.round((tierBreakdown.starter / totalTierUsers) * 100);
-  const growthPct = Math.round((tierBreakdown.growth / totalTierUsers) * 100);
+  const totalTierUsers = ((tierBreakdown.free ?? 0) + (tierBreakdown.starter ?? 0) + (tierBreakdown.growth ?? 0)) || 1;
+  const freePct = Math.round(((tierBreakdown.free ?? 0) / totalTierUsers) * 100);
+  const starterPct = Math.round(((tierBreakdown.starter ?? 0) / totalTierUsers) * 100);
+  const growthPct = Math.round(((tierBreakdown.growth ?? 0) / totalTierUsers) * 100);
 
   return (
     <div className="space-y-6">
