@@ -1,7 +1,7 @@
 import React from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { Sun, Moon, Monitor } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -33,10 +33,13 @@ export function ThemeToggle() {
   const { icon, title, key } = getThemeDetails();
 
   return (
-    <button
+    <motion.button
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ duration: 0.15 }}
       onClick={toggleTheme}
       id="theme-toggle-btn"
-      className="relative p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 active:scale-95 cursor-pointer overflow-hidden flex items-center justify-center w-10 h-10"
+      className="relative p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 cursor-pointer overflow-hidden flex items-center justify-center w-10 h-10"
       title={title}
     >
       <AnimatePresence mode="wait" initial={false}>
@@ -51,6 +54,6 @@ export function ThemeToggle() {
           {icon}
         </motion.div>
       </AnimatePresence>
-    </button>
+    </motion.button>
   );
 }

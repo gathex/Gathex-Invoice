@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Invoice, BusinessDetails, Payment } from "../../../types";
 import { Card } from "../../ui/Card";
 import { Button } from "../../ui/Button";
@@ -255,14 +256,29 @@ export function PortalInvoices({ invoices, formatINR, onRefresh }: { invoices: I
       </Card>
 
       {/* Dynamic UPI Payment Modal */}
-      {selectedInvoiceForPayment && (() => {
-        const upiId = "gathex@upi";
-        const payeeName = "Gathex Invoicing Solution";
-        const upiString = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${selectedInvoiceForPayment.amountDue}&cu=INR&tn=${encodeURIComponent(`Pay ${selectedInvoiceForPayment.invoiceNumber}`)}`;
+      <AnimatePresence>
+        {selectedInvoiceForPayment && (() => {
+          const upiId = "gathex@upi";
+          const payeeName = "Gathex Invoicing Solution";
+          const upiString = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${selectedInvoiceForPayment.amountDue}&cu=INR&tn=${encodeURIComponent(`Pay ${selectedInvoiceForPayment.invoiceNumber}`)}`;
 
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm px-4">
-            <Card className="max-w-md w-full p-6 border-slate-800 bg-slate-900 text-white space-y-6 shadow-2xl relative">
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }} 
+                onClick={() => setSelectedInvoiceForPayment(null)} 
+                className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" 
+              />
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 15 }} 
+                animate={{ opacity: 1, scale: 1, y: 0 }} 
+                exit={{ opacity: 0, scale: 0.95, y: 10 }} 
+                transition={{ duration: 0.2 }}
+                className="relative max-w-md w-full z-10"
+              >
+                <Card className="w-full p-6 border-slate-800 bg-slate-900 text-white space-y-6 shadow-2xl relative" hoverable={false}>
               <div className="text-center space-y-2">
                 <h3 className="text-xl font-bold tracking-tight flex items-center justify-center gap-1.5">
                   <ShieldCheck className="w-5 h-5 text-indigo-400" />
@@ -322,9 +338,11 @@ export function PortalInvoices({ invoices, formatINR, onRefresh }: { invoices: I
               </div>
             </div>
           </Card>
-        </div>
-      );
-    })()}
+        </motion.div>
+      </div>
+    );
+  })()}
+</AnimatePresence>
 
     {/* Receipt Dialog Hook */}
     <ReceiptPreviewDialog 

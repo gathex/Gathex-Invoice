@@ -50,7 +50,7 @@ import { Button } from "../ui/Button";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { notificationService } from "../../services/notificationService";
 import { NotificationItem } from "../../types";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion } from "framer-motion";
 
 const formatRelativeTime = (date: Date) => {
   const now = new Date();
@@ -207,16 +207,22 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/60 h-18 px-4 lg:px-8 flex items-center justify-between">
           {/* Left: Mobile trigger & Active Business */}
           <div className="flex items-center gap-3">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: 0.15 }}
               onClick={() => setIsMobileMenuOpen(true)}
               className="lg:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
             >
               <Menu className="w-5.5 h-5.5" />
-            </button>
+            </motion.button>
 
             {/* Business Card Button */}
             {activeBusiness && (
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.15 }}
                 onClick={() => setIsBizModalOpen(true)}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left cursor-pointer"
               >
@@ -234,7 +240,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                     </div>
                   )}
                 </div>
-              </button>
+              </motion.button>
             )}
           </div>
 
@@ -244,16 +250,22 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             <ThemeToggle />
 
             {/* Quick Create shortcut */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: 0.15 }}
               onClick={() => navigate("invoices")}
               className="hidden sm:flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-all shadow-md shadow-primary-600/10 hover:shadow-primary-600/15 cursor-pointer"
             >
               <Plus className="w-4 h-4" /> Create Invoice
-            </button>
+            </motion.button>
 
             {/* Notifications */}
             <div className="relative">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.15 }}
                 onClick={() => {
                   setIsNotificationsOpen(!isNotificationsOpen);
                   setIsProfileOpen(false);
@@ -264,7 +276,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 {unreadCount > 0 && (
                   <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-500 border-2 border-white dark:border-slate-900 animate-pulse" />
                 )}
-              </button>
+              </motion.button>
 
               {isNotificationsOpen && (
                 <>
@@ -466,7 +478,17 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
         {/* Scrollable page body */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-8">
-          {children}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentRoute}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
 

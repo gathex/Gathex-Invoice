@@ -30,6 +30,8 @@ import {
 } from "lucide-react";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
+import { Skeleton } from "../ui/Skeleton";
+import { motion } from "framer-motion";
 import { useToast } from "../ui/Toast";
 import { EmptyState } from "../ui/EmptyState";
 import { Customer, Invoice, ProductService } from "../../types";
@@ -613,44 +615,51 @@ export function Dashboard() {
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {primaryMetrics.map((metric, i) => (
-          <Card key={i} className="hover:shadow-md transition-shadow relative group border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  {metric.title}
-                </p>
-                <h3 className="text-2xl font-black font-display text-slate-900 dark:text-white mt-1.5 leading-tight tracking-tight">
-                  {metric.value}
-                </h3>
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.15, delay: Math.min(i * 0.05, 0.3) }}
+          >
+            <Card className="hover:shadow-md transition-shadow relative group border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 h-full">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    {metric.title}
+                  </p>
+                  <h3 className="text-2xl font-black font-display text-slate-900 dark:text-white mt-1.5 leading-tight tracking-tight">
+                    {metric.value}
+                  </h3>
+                </div>
+                <div className={`p-2.5 rounded-xl ${metric.bg} transition-transform group-hover:scale-105`}>
+                  {i === 0 ? (
+                    <div className="icon-wrapper-selector">
+                      <span style={{ color: "#000000" }}>
+                        {metric.icon}
+                      </span>
+                    </div>
+                  ) : (
+                    metric.icon
+                  )}
+                </div>
               </div>
-              <div className={`p-2.5 rounded-xl ${metric.bg} transition-transform group-hover:scale-105`}>
-                {i === 0 ? (
-                  <div className="icon-wrapper-selector">
-                    <span style={{ color: "#000000" }}>
-                      {metric.icon}
-                    </span>
-                  </div>
+              
+              <div className="mt-4 flex items-center gap-1.5 text-xs">
+                {metric.isPositive ? (
+                  <span className="flex items-center text-emerald-600 dark:text-emerald-400 font-bold">
+                    <TrendingUp className="w-3.5 h-3.5 mr-0.5" />
+                  </span>
                 ) : (
-                  metric.icon
+                  <span className="flex items-center text-rose-500 dark:text-rose-400 font-bold">
+                    <ShieldAlert className="w-3.5 h-3.5 mr-0.5" />
+                  </span>
                 )}
+                <span className="text-slate-500 dark:text-slate-400 font-medium">
+                  {metric.change}
+                </span>
               </div>
-            </div>
-            
-            <div className="mt-4 flex items-center gap-1.5 text-xs">
-              {metric.isPositive ? (
-                <span className="flex items-center text-emerald-600 dark:text-emerald-400 font-bold">
-                  <TrendingUp className="w-3.5 h-3.5 mr-0.5" />
-                </span>
-              ) : (
-                <span className="flex items-center text-rose-500 dark:text-rose-400 font-bold">
-                  <ShieldAlert className="w-3.5 h-3.5 mr-0.5" />
-                </span>
-              )}
-              <span className="text-slate-500 dark:text-slate-400 font-medium">
-                {metric.change}
-              </span>
-            </div>
-          </Card>
+            </Card>
+          </motion.div>
         ))}
       </div>
 

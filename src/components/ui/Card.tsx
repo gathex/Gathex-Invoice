@@ -1,21 +1,24 @@
 import React, { ReactNode, HTMLAttributes } from "react";
+import { motion, HTMLMotionProps } from "framer-motion";
 
-export interface CardProps extends HTMLAttributes<HTMLDivElement> {
+export interface CardProps extends Omit<HTMLMotionProps<"div">, "children"> {
   children: ReactNode;
   className?: string;
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
-  key?: React.Key;
+  hoverable?: boolean;
 }
 
-export function Card({ children, className = "", onClick, ...props }: CardProps) {
+export function Card({ children, className = "", onClick, hoverable = true, ...props }: CardProps) {
   return (
-    <div
+    <motion.div
       onClick={onClick}
-      className={`glass-panel rounded-2xl shadow-sm p-6 overflow-hidden ${className} ${onClick ? "cursor-pointer" : ""}`}
+      whileHover={hoverable ? { y: -2 } : undefined}
+      transition={{ duration: 0.15 }}
+      className={`glass-panel rounded-2xl shadow-sm hover:shadow-md p-6 overflow-hidden transition-shadow duration-200 ${className} ${onClick ? "cursor-pointer" : ""}`}
       {...props}
     >
       {children}
-    </div>
+    </motion.div>
   );
 }
 

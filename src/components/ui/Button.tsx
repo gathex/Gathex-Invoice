@@ -1,5 +1,6 @@
 import React, { ButtonHTMLAttributes, ReactNode } from "react";
 import { Loader2 } from "lucide-react";
+import { motion, HTMLMotionProps } from "framer-motion";
 
 export type ButtonVariant = 
   | "primary" 
@@ -9,14 +10,13 @@ export type ButtonVariant =
   | "danger"
   | "accent";
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {
   children?: ReactNode;
   variant?: ButtonVariant;
   loading?: boolean;
   icon?: ReactNode;
   className?: string;
   type?: "button" | "submit" | "reset";
-  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
   spanStyle?: React.CSSProperties;
 }
@@ -33,7 +33,7 @@ export function Button({
   spanStyle,
   ...props 
 }: ButtonProps) {
-  const baseStyle = "inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:pointer-events-none font-sans";
+  const baseStyle = "inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:pointer-events-none font-sans";
   
   const variants = {
     primary: "bg-primary-600 hover:bg-primary-700 text-white shadow-md shadow-primary-600/10 dark:bg-primary-500 dark:hover:bg-primary-600 dark:shadow-none",
@@ -44,11 +44,16 @@ export function Button({
     danger: "bg-rose-600 hover:bg-rose-700 text-white shadow-md shadow-rose-600/10 dark:bg-rose-500 dark:hover:bg-rose-600"
   };
 
+  const isDisabled = disabled || loading;
+
   return (
-    <button
+    <motion.button
       type={type}
       onClick={onClick}
-      disabled={disabled || loading}
+      disabled={isDisabled}
+      whileHover={isDisabled ? undefined : { scale: 1.02 }}
+      whileTap={isDisabled ? undefined : { scale: 0.97 }}
+      transition={{ duration: 0.15 }}
       className={`${baseStyle} ${variants[variant]} ${className}`}
       {...props}
     >
@@ -58,6 +63,6 @@ export function Button({
         icon && <span className="flex-shrink-0">{icon}</span>
       )}
       <span style={spanStyle}>{children}</span>
-    </button>
+    </motion.button>
   );
 }

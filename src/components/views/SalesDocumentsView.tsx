@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
+import { Skeleton } from "../ui/Skeleton";
 import { EmptyState } from "../ui/EmptyState";
 import { useToast } from "../ui/Toast";
 import { useAuth } from "../../context/AuthContext";
@@ -970,9 +972,10 @@ export function SalesDocumentsView({ docType = "invoice" }: { docType?: "invoice
           {/* Invoice Table list */}
           {loading ? (
             <div className="space-y-3">
-              <div className="h-10 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-              <div className="h-16 bg-slate-100 dark:bg-slate-900/60 rounded animate-pulse" />
-              <div className="h-16 bg-slate-100 dark:bg-slate-900/60 rounded animate-pulse" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
             </div>
           ) : filteredInvoices.length === 0 ? (
             <EmptyState
@@ -997,10 +1000,16 @@ export function SalesDocumentsView({ docType = "invoice" }: { docType?: "invoice
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
-                    {filteredInvoices.map((inv) => {
+                    {filteredInvoices.map((inv, index) => {
                       const math = calculateInvoiceMath(inv);
                       return (
-                        <tr key={inv.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10 transition-colors">
+                        <motion.tr
+                          key={inv.id}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.15, delay: Math.min(index * 0.04, 0.4) }}
+                          className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10 transition-colors"
+                        >
                           <td className="p-4 text-sm font-bold font-mono text-slate-900 dark:text-slate-100">{inv.invoiceNumber}</td>
                           <td className="p-4">
                             <div className="text-sm font-bold text-slate-800 dark:text-slate-200">{inv.customerName}</div>
@@ -1041,7 +1050,7 @@ export function SalesDocumentsView({ docType = "invoice" }: { docType?: "invoice
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </td>
-                        </tr>
+                        </motion.tr>
                       );
                     })}
                   </tbody>
@@ -1539,9 +1548,24 @@ export function SalesDocumentsView({ docType = "invoice" }: { docType?: "invoice
       )}
 
       {/* Printable Invoice PDF Sheet */}
-      {isPrintModalOpen && selectedInvoice && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <Card className="w-full max-w-4xl bg-white text-slate-900 shadow-2xl relative flex flex-col p-0 border-none font-sans overflow-hidden my-8">
+      <AnimatePresence>
+        {isPrintModalOpen && selectedInvoice && (
+          <div className="fixed inset-0 flex items-center justify-center p-4 z-50 overflow-y-auto">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setIsPrintModalOpen(false)} 
+              className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs" 
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 15 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.95, y: 10 }} 
+              transition={{ duration: 0.2 }}
+              className="relative w-full max-w-4xl z-10"
+            >
+              <Card className="w-full bg-white text-slate-900 shadow-2xl relative flex flex-col p-0 border-none font-sans overflow-hidden my-8" hoverable={false}>
             <div className="p-4 bg-slate-50 dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800 flex justify-between items-center print:hidden">
               <div className="flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-indigo-500" />
@@ -1764,8 +1788,10 @@ export function SalesDocumentsView({ docType = "invoice" }: { docType?: "invoice
 
             </div>
           </Card>
-        </div>
-      )}
+        </motion.div>
+      </div>
+    )}
+  </AnimatePresence>
     </div>
   );
 }

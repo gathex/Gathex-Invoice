@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Select } from "../ui/Select";
+import { Skeleton } from "../ui/Skeleton";
 import { Dialog } from "../ui/Dialog";
 import { useToast } from "../ui/Toast";
 import { useAuth } from "../../context/AuthContext";
@@ -319,8 +321,8 @@ export function BusinessesView() {
       {/* Grid List of Businesses */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[1, 2].map((i) => (
-            <div key={i} className="animate-pulse bg-white dark:bg-slate-900 rounded-2xl h-56 border border-slate-200/50 dark:border-slate-800" />
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-56 rounded-2xl w-full" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
@@ -340,17 +342,22 @@ export function BusinessesView() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filtered.map((biz) => {
+          {filtered.map((biz, index) => {
             const isActive = activeBusiness?.id === biz.id;
             return (
-              <Card 
-                key={biz.id} 
-                className={`transition-all relative border flex flex-col justify-between p-6 ${
-                  isActive 
-                    ? "border-primary-500/80 ring-2 ring-primary-500/10 dark:ring-primary-400/20 shadow-md bg-white dark:bg-slate-950" 
-                    : "border-slate-200/60 dark:border-slate-800/80 hover:border-slate-300 bg-white dark:bg-slate-900"
-                }`}
+              <motion.div
+                key={biz.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.15, delay: Math.min(index * 0.05, 0.3) }}
               >
+                <Card 
+                  className={`transition-all relative border flex flex-col justify-between p-6 h-full ${
+                    isActive 
+                      ? "border-primary-500/80 ring-2 ring-primary-500/10 dark:ring-primary-400/20 shadow-md bg-white dark:bg-slate-950" 
+                      : "border-slate-200/60 dark:border-slate-800/80 hover:border-slate-300 bg-white dark:bg-slate-900"
+                  }`}
+                >
                 <div>
                   <div className="flex items-start justify-between">
                     <div className="flex gap-3.5">
@@ -447,7 +454,8 @@ export function BusinessesView() {
                   )}
                 </div>
               </Card>
-            );
+            </motion.div>
+          );
           })}
         </div>
       )}

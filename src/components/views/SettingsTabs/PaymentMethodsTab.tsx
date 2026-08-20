@@ -8,6 +8,8 @@ import { useToast } from "../../ui/Toast";
 import { PaymentMethodConfig } from "../../../types";
 import { Check, Edit, Save, X, GripVertical } from "lucide-react";
 
+import { Skeleton } from "../../ui/Skeleton";
+
 export function PaymentMethodsTab({ activeBusiness }: { activeBusiness: any }) {
   const { user } = useAuth();
   const toast = useToast();
@@ -126,7 +128,17 @@ export function PaymentMethodsTab({ activeBusiness }: { activeBusiness: any }) {
   };
 
   if (loading) {
-    return <div className="p-8 text-center text-slate-500">Loading configurations...</div>;
+    return (
+      <div className="p-8 space-y-4">
+        <Skeleton className="h-6 w-56" />
+        <Skeleton className="h-4 w-80" />
+        <div className="space-y-3 pt-4">
+          <Skeleton className="h-16 w-full rounded-2xl" />
+          <Skeleton className="h-16 w-full rounded-2xl" />
+          <Skeleton className="h-16 w-full rounded-2xl" />
+        </div>
+      </div>
+    );
   }
 
   return (

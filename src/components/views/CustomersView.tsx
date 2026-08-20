@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
+import { Skeleton } from "../ui/Skeleton";
 import { EmptyState } from "../ui/EmptyState";
 import { Dialog } from "../ui/Dialog";
 import { useToast } from "../ui/Toast";
@@ -586,19 +588,19 @@ export function CustomersView() {
       {/* Loading Skeletons */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse space-y-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Card key={i} className="space-y-4">
               <div className="flex justify-between items-center">
-                <div className="h-10 w-10 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-                <div className="h-6 w-20 bg-slate-200 dark:bg-slate-800 rounded-md" />
+                <Skeleton className="h-10 w-10 rounded-xl" />
+                <Skeleton className="h-6 w-20 rounded-md" />
               </div>
               <div className="space-y-2">
-                <div className="h-5 w-40 bg-slate-200 dark:bg-slate-800 rounded" />
-                <div className="h-4 w-28 bg-slate-200 dark:bg-slate-800 rounded" />
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-4 w-28" />
               </div>
               <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                <div className="h-4 w-full bg-slate-200 dark:bg-slate-800 rounded" />
-                <div className="h-4 w-full bg-slate-200 dark:bg-slate-800 rounded" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
               </div>
             </Card>
           ))}
@@ -618,10 +620,16 @@ export function CustomersView() {
         <>
           {/* Customers Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {paginatedCustomers.map((cust) => {
+            {paginatedCustomers.map((cust, index) => {
               const stats = getCustomerMetrics(cust.id);
               return (
-                <Card key={cust.id} className="hover:shadow-md transition-shadow flex flex-col justify-between relative border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900">
+                <motion.div
+                  key={cust.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.15, delay: Math.min(index * 0.05, 0.4) }}
+                >
+                  <Card className="hover:shadow-md transition-shadow flex flex-col justify-between relative border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 h-full">
                   <div>
                     <div className="flex items-start justify-between">
                       <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400">
@@ -718,7 +726,8 @@ export function CustomersView() {
                     </div>
                   </div>
                 </Card>
-              );
+              </motion.div>
+            );
             })}
           </div>
 

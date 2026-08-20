@@ -4,6 +4,7 @@ import { businessServiceUpi } from "../../../services/businessService";
 import { BusinessDetails, UPIConfig } from "../../../types";
 import { Input } from "../../ui/Input";
 import { Button } from "../../ui/Button";
+import { Skeleton } from "../../ui/Skeleton";
 import { useToast } from "../../ui/Toast";
 import { QrCode, Save, Plus, Trash2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -109,7 +110,15 @@ export function UPISettingsTab({ activeBusiness }: UPISettingsTabProps) {
 
   const upiQrString = `upi://pay?pa=${primaryUpiId}&pn=${encodeURIComponent(merchantName)}&cu=INR`;
 
-  if (fetching) return <div className="p-8 text-center text-slate-500">Loading UPI configuration...</div>;
+  if (fetching) {
+    return (
+      <div className="p-8 space-y-4">
+        <Skeleton className="h-6 w-48" />
+        <Skeleton className="h-4 w-72" />
+        <Skeleton className="h-32 w-full rounded-2xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

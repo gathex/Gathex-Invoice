@@ -5,6 +5,8 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { RouterProvider, useRouter } from "./context/RouterContext";
 import { ToastProvider } from "./components/ui/Toast";
 
+import { AnimatePresence, motion } from "framer-motion";
+
 // Pages & Components
 import { LandingView } from "./components/views/LandingView";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
@@ -61,44 +63,54 @@ function AppContent() {
     return <AppLoadingSkeleton />;
   }
 
-  // Render Landing page separately
-  if (currentRoute === "landing") {
-    return <LandingView />;
-  }
-
   // Auth Layout mapping
   const isAuthRoute = ["auth-login", "auth-register", "auth-forgot"].includes(currentRoute);
-  if (currentRoute === "public-invoice") return <PublicInvoiceView />;
-  if (currentRoute === "portal") return <CustomerPortalView />;
-  
-  if (isAuthRoute) {
-    return <AuthView mode={currentRoute === "auth-login" ? "login" : currentRoute === "auth-register" ? "register" : "forgot"} />;
-  }
 
-  // Dashboard views mapping inside standard layout
   return (
-    <DashboardLayout>
-      {currentRoute === "dashboard" && <Dashboard />}
-      {currentRoute === "admin" && <AdminPortalView />}
-      {currentRoute === "businesses" && <BusinessesView />}
-      {currentRoute === "quotations" && <SalesDocumentsView docType="quotation" />}
-      {currentRoute === "proforma-invoices" && <SalesDocumentsView docType="proforma_invoice" />}
-      {currentRoute === "invoices" && <SalesDocumentsView docType="invoice" />}
-      {currentRoute === "credit-notes" && <SalesDocumentsView docType="credit_note" />}
-      {currentRoute === "debit-notes" && <SalesDocumentsView docType="debit_note" />}
-      {currentRoute === "delivery-challans" && <SalesDocumentsView docType="delivery_challan" />}
-      {currentRoute === "purchase-orders" && <SalesDocumentsView docType="purchase_order" />}
-      {currentRoute === "customers" && <CustomersView />}
-      {currentRoute === "products" && <ProductsView />}
-      {currentRoute === "services" && <ProductsView />}
-      {currentRoute === "payments" && <PaymentsView />}
-      {currentRoute === "reminders" && <RemindersView />}
-      {currentRoute === "expenses" && <ExpensesView />}
-      {currentRoute === "reports" && <ReportsView />}
-      {currentRoute === "qa-testing" && <QATestingView />}
-      {currentRoute === "settings" && <SettingsView />}
-      {currentRoute === "profile" && <ProfileView />}
-    </DashboardLayout>
+    <AnimatePresence mode="wait">
+      {currentRoute === "landing" ? (
+        <motion.div key="landing" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+          <LandingView />
+        </motion.div>
+      ) : currentRoute === "public-invoice" ? (
+        <motion.div key="public-invoice" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+          <PublicInvoiceView />
+        </motion.div>
+      ) : currentRoute === "portal" ? (
+        <motion.div key="portal" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+          <CustomerPortalView />
+        </motion.div>
+      ) : isAuthRoute ? (
+        <motion.div key={currentRoute} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+          <AuthView mode={currentRoute === "auth-login" ? "login" : currentRoute === "auth-register" ? "register" : "forgot"} />
+        </motion.div>
+      ) : (
+        <motion.div key="app-dashboard-layout" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+          <DashboardLayout>
+            {currentRoute === "dashboard" && <Dashboard />}
+            {currentRoute === "admin" && <AdminPortalView />}
+            {currentRoute === "businesses" && <BusinessesView />}
+            {currentRoute === "quotations" && <SalesDocumentsView docType="quotation" />}
+            {currentRoute === "proforma-invoices" && <SalesDocumentsView docType="proforma_invoice" />}
+            {currentRoute === "invoices" && <SalesDocumentsView docType="invoice" />}
+            {currentRoute === "credit-notes" && <SalesDocumentsView docType="credit_note" />}
+            {currentRoute === "debit-notes" && <SalesDocumentsView docType="debit_note" />}
+            {currentRoute === "delivery-challans" && <SalesDocumentsView docType="delivery_challan" />}
+            {currentRoute === "purchase-orders" && <SalesDocumentsView docType="purchase_order" />}
+            {currentRoute === "customers" && <CustomersView />}
+            {currentRoute === "products" && <ProductsView />}
+            {currentRoute === "services" && <ProductsView />}
+            {currentRoute === "payments" && <PaymentsView />}
+            {currentRoute === "reminders" && <RemindersView />}
+            {currentRoute === "expenses" && <ExpensesView />}
+            {currentRoute === "reports" && <ReportsView />}
+            {currentRoute === "qa-testing" && <QATestingView />}
+            {currentRoute === "settings" && <SettingsView />}
+            {currentRoute === "profile" && <ProfileView />}
+          </DashboardLayout>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 

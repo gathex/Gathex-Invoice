@@ -7,7 +7,7 @@ import { Card, CardContent } from "../ui/Card";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { Badge } from "../ui/Badge";
 import { GathexLogo } from "../ui/GathexLogo";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Building2, 
   Sparkles, 

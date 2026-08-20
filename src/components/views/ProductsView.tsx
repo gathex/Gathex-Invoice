@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Select } from "../ui/Select";
+import { Skeleton } from "../ui/Skeleton";
 import { EmptyState } from "../ui/EmptyState";
 import { Dialog } from "../ui/Dialog";
 import { useToast } from "../ui/Toast";
@@ -318,10 +320,10 @@ export function ProductsView() {
       {/* Table grid of products */}
       {loading ? (
         <div className="space-y-3">
-          <div className="h-12 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
-          <div className="h-24 bg-slate-100 dark:bg-slate-900/60 rounded-xl animate-pulse" />
-          <div className="h-24 bg-slate-100 dark:bg-slate-900/60 rounded-xl animate-pulse" />
-          <div className="h-24 bg-slate-100 dark:bg-slate-900/60 rounded-xl animate-pulse" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
         </div>
       ) : paginatedProducts.length === 0 ? (
         <EmptyState
@@ -352,13 +354,19 @@ export function ProductsView() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
-                  {paginatedProducts.map((p) => {
+                  {paginatedProducts.map((p, index) => {
                     const casted = p as any;
                     const isProduct = p.type === "product";
                     const isLowStock = isProduct && casted.quantityInStock !== null && casted.quantityInStock <= (casted.lowStockThreshold || 0);
 
                     return (
-                      <tr key={p.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-900/10 transition-colors">
+                      <motion.tr
+                        key={p.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.15, delay: Math.min(index * 0.04, 0.4) }}
+                        className="hover:bg-slate-50/40 dark:hover:bg-slate-900/10 transition-colors"
+                      >
                         <td className="p-4 whitespace-nowrap">
                           {p.type === "product" ? (
                             <Badge variant="primary">Goods</Badge>
@@ -435,7 +443,7 @@ export function ProductsView() {
                             </button>
                           </div>
                         </td>
-                      </tr>
+                      </motion.tr>
                     );
                   })}
                 </tbody>

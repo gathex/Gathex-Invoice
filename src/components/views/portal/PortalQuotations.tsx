@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "../../../supabase/config";
 import { Quotation } from "../../../types";
 import { Card } from "../../ui/Card";
@@ -251,9 +252,24 @@ export function PortalQuotations({ quotations, formatINR, onUpdate }: { quotatio
       </div>
 
       {/* Request Revision Dialog Modal */}
-      {revisionModalQuo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm px-4">
-          <Card className="max-w-md w-full p-6 border-slate-800 bg-slate-900 text-white space-y-6 shadow-2xl">
+      <AnimatePresence>
+        {revisionModalQuo && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setRevisionModalQuo(null)} 
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" 
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 15 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.95, y: 10 }} 
+              transition={{ duration: 0.2 }}
+              className="relative max-w-md w-full z-10"
+            >
+              <Card className="w-full p-6 border-slate-800 bg-slate-900 text-white space-y-6 shadow-2xl" hoverable={false}>
             <div className="text-center space-y-1">
               <h3 className="text-lg font-bold tracking-tight flex items-center justify-center gap-1.5">
                 <MessageSquare className="w-5 h-5 text-indigo-400" />
@@ -290,8 +306,10 @@ export function PortalQuotations({ quotations, formatINR, onUpdate }: { quotatio
               </div>
             </form>
           </Card>
-        </div>
-      )}
+        </motion.div>
+      </div>
+    )}
+  </AnimatePresence>
     </div>
   );
 }

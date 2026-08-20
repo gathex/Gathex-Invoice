@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { supabase } from "../../supabase/config";
 import { useAuth } from "../../context/AuthContext";
 import { Card } from "../ui/Card";
@@ -307,8 +308,14 @@ export function PaymentsView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
-                {paginatedPayments.map((p) => (
-                  <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10 transition-colors">
+                {paginatedPayments.map((p, index) => (
+                  <motion.tr
+                    key={p.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.15, delay: Math.min(index * 0.04, 0.4) }}
+                    className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10 transition-colors"
+                  >
                     <td className="p-4 text-xs font-bold font-mono text-slate-500">{p.id.slice(0, 8).toUpperCase()}</td>
                     <td className="p-4 text-sm font-bold font-mono text-primary-600 dark:text-primary-400">{p.invoiceNumber}</td>
                     <td className="p-4">
@@ -327,7 +334,7 @@ export function PaymentsView() {
                       <Button variant="outline" onClick={() => setSelectedPaymentForDetails(p)} icon={<Eye className="w-4 h-4" />}>Details</Button>
                       <Button variant="outline" onClick={() => setSelectedPaymentForReceipt(p)}>Receipt</Button>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
               </tbody>
             </table>
@@ -335,8 +342,14 @@ export function PaymentsView() {
 
           {/* Mobile View */}
           <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/40">
-            {paginatedPayments.map((p) => (
-              <div key={p.id} className="p-4 space-y-3 hover:bg-slate-50/50 dark:hover:bg-slate-900/10 transition-colors">
+            {paginatedPayments.map((p, index) => (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.15, delay: Math.min(index * 0.04, 0.4) }}
+                className="p-4 space-y-3 hover:bg-slate-50/50 dark:hover:bg-slate-900/10 transition-colors"
+              >
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="text-sm font-bold text-slate-800 dark:text-slate-200">{p.customerName}</div>
@@ -360,7 +373,7 @@ export function PaymentsView() {
                     <Button variant="outline" onClick={() => setSelectedPaymentForReceipt(p)}>Receipt</Button>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
 

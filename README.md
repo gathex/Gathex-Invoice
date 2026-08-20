@@ -1,21 +1,40 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# GATHEX Invoice
 
-# Run and deploy your AI Studio app
+GST-compliant invoicing SaaS built for Indian freelancers, small manufacturers, and service providers — unified invoices, quotations, credit/debit notes, delivery challans, and purchase orders, with automatic CGST/SGST/IGST calculation, UPI QR payments, and payment reminders.
 
-This contains everything you need to run your app locally.
+## Tech Stack
 
-View your app in AI Studio: https://ai.studio/apps/ab12a1f2-26e8-4e66-965f-cfd13e03a66e
+- React 19 + TypeScript + Vite
+- Tailwind CSS + shadcn/ui
+- Supabase (Postgres + Auth + Realtime) — see `FINAL_SCHEMA.sql` for the database schema
+- jsPDF + html2canvas-pro for PDF invoice export
+- Recharts for dashboard analytics
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
-# Gathex-Invoice
+   ```bash
+   npm install
+   ```
+2. Set up Supabase:
+   - Create a project at [supabase.com](https://supabase.com)
+   - Run `FINAL_SCHEMA.sql` in the SQL Editor (and any numbered migration files present in the repo root, in order)
+3. Create `.env.local` in the project root:
+   ```
+   VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-public-key
+   ```
+4. Run the app:
+   ```bash
+   npm run dev
+   ```
+
+## Deployment
+
+Deployed on Vercel. Remember to set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as environment variables in the Vercel project settings (Production environment), and update Supabase Authentication → URL Configuration (Site URL + Redirect URLs) to match your production domain.
+
+## License
+
+Private project — not licensed for redistribution.
