@@ -25,7 +25,8 @@ export type RoutePath =
   | "auth-forgot"
   | "portal"
   | "public-invoice"
-  | "qa-testing";
+  | "qa-testing"
+  | "admin";
 
 interface RouterContextType {
   currentRoute: RoutePath;
@@ -40,7 +41,7 @@ export function RouterProvider({ children }: { children: ReactNode }) {
     const hash = window.location.hash.replace(/^#\/?/, "").split("?")[0] as RoutePath;
     const validRoutes: RoutePath[] = [
       "landing", "dashboard", "businesses", "quotations", "proforma-invoices", "invoices", "credit-notes", "debit-notes", "delivery-challans", "purchase-orders", "customers", "products", "services", "payments", "reminders", "expenses", "reports", "settings", "profile",
-      "auth-login", "auth-register", "auth-forgot", "portal", "public-invoice", "qa-testing"
+      "auth-login", "auth-register", "auth-forgot", "portal", "public-invoice", "qa-testing", "admin"
     ];
     if (validRoutes.includes(hash)) {
       return hash;
@@ -53,7 +54,7 @@ export function RouterProvider({ children }: { children: ReactNode }) {
       const hash = window.location.hash.replace(/^#\/?/, "").split("?")[0] as RoutePath;
       const validRoutes: RoutePath[] = [
         "landing", "dashboard", "businesses", "quotations", "proforma-invoices", "invoices", "credit-notes", "debit-notes", "delivery-challans", "purchase-orders", "customers", "products", "services", "payments", "reminders", "expenses", "reports", "settings", "profile",
-        "auth-login", "auth-register", "auth-forgot", "portal", "public-invoice", "qa-testing"
+        "auth-login", "auth-register", "auth-forgot", "portal", "public-invoice", "qa-testing", "admin"
       ];
       if (validRoutes.includes(hash)) {
         setCurrentRoute(hash);

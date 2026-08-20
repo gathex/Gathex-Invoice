@@ -1,6 +1,7 @@
 import React, { useState, useEffect, ReactNode } from "react";
 import { useRouter, RoutePath } from "../../context/RouterContext";
 import { useAuth } from "../../context/AuthContext";
+import { useAdmin } from "../../context/AdminContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useToast } from "../ui/Toast";
 import { businessService } from "../../services/businessService";
@@ -39,7 +40,8 @@ import {
   Sliders,
   FolderSync,
   AlertCircle,
-  FlaskConical
+  FlaskConical,
+  Crown
 } from "lucide-react";
 import { GathexLogo } from "../ui/GathexLogo";
 import { Dialog } from "../ui/Dialog";
@@ -77,6 +79,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { currentRoute, navigate } = useRouter();
   const { user, profile, activeBusiness, logout, setActiveBusiness } = useAuth();
+  const { isAdmin, adminRole } = useAdmin();
   const { theme, toggleTheme } = useTheme();
   const toast = useToast();
 
@@ -114,6 +117,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   const navItems = [
     { label: "Dashboard", path: "dashboard" as RoutePath, icon: <LayoutDashboard className="w-5 h-5" /> },
+    ...(isAdmin ? [{ label: "Admin Portal", path: "admin" as RoutePath, icon: <Crown className="w-5 h-5 text-purple-500 dark:text-purple-400" /> }] : []),
     { label: "Workspaces", path: "businesses" as RoutePath, icon: <Building2 className="w-5 h-5" /> },
     { label: "Customers", path: "customers" as RoutePath, icon: <Users className="w-5 h-5" /> },
     { label: "Quotations", path: "quotations" as RoutePath, icon: <FileText className="w-5 h-5" /> },

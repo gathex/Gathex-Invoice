@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AdminProvider, useAdmin } from "./context/AdminContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { RouterProvider, useRouter } from "./context/RouterContext";
 import { ToastProvider } from "./components/ui/Toast";
@@ -22,15 +23,17 @@ import { CustomerPortalView } from "./components/views/CustomerPortalView";
 import { PublicInvoiceView } from "./components/views/PublicInvoiceView";
 import { QATestingView } from "./components/views/QATestingView";
 import { AuthView } from "./components/views/AuthView";
+import { AdminPortalView } from "./components/views/admin/AdminPortalView";
 import { AppLoadingSkeleton } from "./components/ui/AppLoadingSkeleton";
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin();
   const { currentRoute, navigate } = useRouter();
 
-  // Auth Guard Routing Checks
+  // Auth & Admin Guard Routing Checks
   useEffect(() => {
-    if (loading) return;
+    if (loading || adminLoading) return;
 
     const isAuthRoute = ["auth-login", "auth-register", "auth-forgot"].includes(currentRoute);
     const isPublicRoute = ["portal", "public-invoice"].includes(currentRoute);
@@ -45,9 +48,13 @@ function AppContent() {
       if (isAuthRoute || isLandingRoute) {
         // Direct authenticated users to dashboard if trying to view login or landing pages
         navigate("dashboard");
+      } else if (currentRoute === "admin" && !isAdmin) {
+        // Direct non-admins away from /admin
+        console.warn("Access denied to /admin route for non-admin user.");
+        navigate("dashboard");
       }
     }
-  }, [user, currentRoute, loading]);
+  }, [user, currentRoute, loading, adminLoading, isAdmin, navigate]);
 
   // Loading Screen with Logo, App Name & UI Skeleton
   if (loading) {
@@ -72,6 +79,7 @@ function AppContent() {
   return (
     <DashboardLayout>
       {currentRoute === "dashboard" && <Dashboard />}
+      {currentRoute === "admin" && <AdminPortalView />}
       {currentRoute === "businesses" && <BusinessesView />}
       {currentRoute === "quotations" && <SalesDocumentsView docType="quotation" />}
       {currentRoute === "proforma-invoices" && <SalesDocumentsView docType="proforma_invoice" />}
@@ -99,11 +107,14 @@ export default function App() {
     <ThemeProvider>
       <ToastProvider>
         <AuthProvider>
-          <RouterProvider>
-            <AppContent />
-          </RouterProvider>
+          <AdminProvider>
+            <RouterProvider>
+              <AppContent />
+            </RouterProvider>
+          </AdminProvider>
         </AuthProvider>
       </ToastProvider>
     </ThemeProvider>
   );
 }
+
