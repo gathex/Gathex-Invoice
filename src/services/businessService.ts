@@ -15,7 +15,7 @@ export interface BrandingSettings {
   primaryColor: string;
   secondaryColor: string;
   themeSelection: string;
-  invoiceTheme?: "modern" | "classic" | "minimal" | "bold";
+  invoiceTheme?: "modern" | "classic" | "minimal" | "bold" | "corporate";
   invoiceAccentColor: string;
   invoiceFooterText: string;
   authorizedSignatureUrl?: string;

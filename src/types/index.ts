@@ -24,7 +24,7 @@ export interface BusinessDetails {
   ownerUid: string;
   name: string;
   tradeName?: string; // Legal trade name
-  invoiceTheme?: "modern" | "classic" | "minimal" | "bold";
+  invoiceTheme?: "modern" | "classic" | "minimal" | "bold" | "corporate";
   gstin?: string; // GSTIN for India (15-digit)
   email: string;
   phone: string;

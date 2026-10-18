@@ -226,10 +226,10 @@ export function PaymentsView() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold font-display text-slate-900 dark:text-white">Payments Received</h1>
+          <h1 className="text-xl md:text-2xl font-extrabold font-display text-slate-900 dark:text-white">Payments Received</h1>
           <p className="text-sm text-slate-500">Log incoming customer settlements and match transaction IDs against invoices</p>
         </div>
         

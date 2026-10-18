@@ -16,6 +16,7 @@ interface RecordPaymentDialogProps {
   businessId: string;
   invoices: Invoice[];
   defaultInvoiceId?: string;
+  onSuccess?: () => void;
 }
 
 export function RecordPaymentDialog({
@@ -23,7 +24,8 @@ export function RecordPaymentDialog({
   onClose,
   businessId,
   invoices,
-  defaultInvoiceId
+  defaultInvoiceId,
+  onSuccess
 }: RecordPaymentDialogProps) {
   const { user, activeBusiness } = useAuth();
   const toast = useToast();
@@ -74,7 +76,7 @@ export function RecordPaymentDialog({
         .eq('is_enabled', true)
         .order('display_order', { ascending: true });
 
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         const mapped = data.map(d => ({
           id: d.id,
           businessId: d.business_id,
@@ -94,6 +96,45 @@ export function RecordPaymentDialog({
           setSelectedMethodId(defaultMethod.id);
         } else if (mapped.length > 0) {
           setSelectedMethodId(mapped[0].id);
+        }
+      } else {
+        // Seed standard default payment methods for this business
+        const userId = user?.id || user?.uid || "";
+        const defaults = [
+          { method_type: "cash", display_name: "Cash", description: "Cash payments", is_enabled: true, is_default: false, display_order: 1 },
+          { method_type: "upi", display_name: "UPI", description: "Google Pay, PhonePe, Paytm", is_enabled: true, is_default: true, display_order: 2 },
+          { method_type: "bank_transfer", display_name: "Bank Transfer", description: "NEFT / RTGS / IMPS", is_enabled: true, is_default: false, display_order: 3 },
+          { method_type: "credit_card", display_name: "Credit Card", description: "Visa, Mastercard", is_enabled: true, is_default: false, display_order: 4 },
+          { method_type: "debit_card", display_name: "Debit Card", description: "Visa Debit, RuPay", is_enabled: true, is_default: false, display_order: 5 },
+          { method_type: "cheque", display_name: "Cheque", description: "Physical Cheque", is_enabled: true, is_default: false, display_order: 6 },
+          { method_type: "mixed", display_name: "Mixed Payment", description: "Split across multiple methods", is_enabled: true, is_default: false, display_order: 10 }
+        ].map(d => ({
+          ...d,
+          business_id: businessId,
+          owner_uid: userId
+        }));
+
+        const { data: inserted } = await supabase.from('payment_methods').insert(defaults).select('*');
+        if (inserted && inserted.length > 0) {
+          const mapped = inserted.map(d => ({
+            id: d.id,
+            businessId: d.business_id,
+            ownerUid: d.owner_uid,
+            methodType: d.method_type,
+            displayName: d.display_name,
+            description: d.description,
+            icon: d.icon,
+            isEnabled: !!d.is_enabled,
+            displayOrder: d.display_order,
+            isDefault: !!d.is_default
+          } as PaymentMethodConfig));
+          setMethods(mapped);
+          const defaultMethod = mapped.find(m => m.isDefault);
+          if (defaultMethod) {
+            setSelectedMethodId(defaultMethod.id);
+          } else if (mapped.length > 0) {
+            setSelectedMethodId(mapped[0].id);
+          }
         }
       }
     } catch (e) {
@@ -119,6 +160,7 @@ export function RecordPaymentDialog({
     e.preventDefault();
     if (!user || !selectedInvoice || !selectedMethod) return;
 
+    const userId = user.id || user.uid;
     const paymentAmount = isMixed ? totalMixedAmount : Number(amount);
     
     if (paymentAmount <= 0) return toast.error("Invalid Amount", "Payment must be greater than zero.");
@@ -141,11 +183,11 @@ export function RecordPaymentDialog({
         .from('payments')
         .insert({
           business_id: businessId,
-          owner_uid: user.uid,
+          owner_uid: userId,
           invoice_id: selectedInvoice.id,
           invoice_number: selectedInvoice.invoiceNumber,
           customer_id: selectedInvoice.customerId || null,
-          customer_name: selectedInvoice.customerDetails?.name || "Customer",
+          customer_name: selectedInvoice.customerDetails?.name || (selectedInvoice as any).customerName || "Customer",
           amount: paymentAmount,
           currency: "INR",
           payment_date: paymentDate,
@@ -155,7 +197,7 @@ export function RecordPaymentDialog({
           transaction_id: transactionId || null,
           reference_number: referenceNumber || null,
           notes: notes || null,
-          recorded_by: user.uid
+          recorded_by: userId
         })
         .select('id')
         .single();
@@ -172,7 +214,7 @@ export function RecordPaymentDialog({
             business_id: businessId,
             invoice_id: selectedInvoice.id,
             customer_id: selectedInvoice.customerId || null,
-            owner_uid: user.uid,
+            owner_uid: userId,
             method_type: rowMethod.methodType,
             amount: Number(row.amount),
             currency: "INR",
@@ -185,7 +227,7 @@ export function RecordPaymentDialog({
           business_id: businessId,
           invoice_id: selectedInvoice.id,
           customer_id: selectedInvoice.customerId || null,
-          owner_uid: user.uid,
+          owner_uid: userId,
           method_type: selectedMethod.methodType,
           amount: paymentAmount,
           currency: "INR",
@@ -210,21 +252,21 @@ export function RecordPaymentDialog({
         business_id: businessId,
         invoice_id: selectedInvoice.id,
         customer_id: selectedInvoice.customerId || null,
-        owner_uid: user.uid,
+        owner_uid: userId,
         action: "RECORD_PAYMENT",
         description: `Logged incoming payment of ₹${paymentAmount} via ${selectedMethod.displayName}`,
-        performed_by: user.uid
+        performed_by: userId
       });
 
       if (paymentStatus === "paid" && activeBusiness) {
         const fullPaymentDoc: Payment = {
           id: paymentId,
           businessId,
-          ownerUid: user.uid,
+          ownerUid: userId,
           invoiceId: selectedInvoice.id,
           invoiceNumber: selectedInvoice.invoiceNumber,
           customerId: selectedInvoice.customerId,
-          customerName: selectedInvoice.customerDetails?.name || "Customer",
+          customerName: selectedInvoice.customerDetails?.name || (selectedInvoice as any).customerName || "Customer",
           amount: paymentAmount,
           currency: "INR",
           paymentDate: new Date(paymentDate),
@@ -234,7 +276,7 @@ export function RecordPaymentDialog({
           transactionId: transactionId || undefined,
           referenceNumber: referenceNumber || undefined,
           notes: notes || undefined,
-          recordedBy: user.uid,
+          recordedBy: userId,
           createdAt: new Date(),
           updatedAt: new Date()
         };
@@ -242,6 +284,7 @@ export function RecordPaymentDialog({
       }
 
       toast.success("Payment Recorded", `Payment of ₹${paymentAmount} recorded successfully.`);
+      if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
       console.error(err);

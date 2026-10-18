@@ -1,12 +1,14 @@
 import { ReminderDialog } from "./ReminderDialog";
 import { ShareInvoiceDialog } from "./ShareInvoiceDialog";
+import { RecordPaymentDialog } from "./RecordPaymentDialog";
 import { QRCodeSVG } from "qrcode.react";
 import { generateDynamicUpiString } from "../../utils/upiUtils";
 import React, { useState, useRef, useEffect } from "react";
-import { exportElementToPDF } from "../../utils/pdfExport";
+import { exportElementToPDF, prepareElementForPrintScaling } from "../../utils/pdfExport";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
+import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../ui/Toast";
 import { 
   ArrowLeft, 
@@ -31,7 +33,8 @@ import {
   Building,
   DollarSign,
   Briefcase,
-  FileSpreadsheet
+  FileSpreadsheet,
+  IndianRupee
 } from "lucide-react";
 
 interface InvoiceItemState {
@@ -86,6 +89,7 @@ export function DocumentPreview({
   onStatusChange
 }: DocumentPreviewProps) {
   const toast = useToast();
+  const { user } = useAuth();
   
   // Preview configuration states
   const [zoom, setZoom] = useState<number>(100);
@@ -94,6 +98,7 @@ export function DocumentPreview({
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isControlsCollapsed, setIsControlsCollapsed] = useState(false);
   const [isReminderOpen, setIsReminderOpen] = useState(false);
+  const [isRecordPaymentOpen, setIsRecordPaymentOpen] = useState(false);
   const [upiConfig, setUpiConfig] = useState<any>(null);
   const [brandingSettings, setBrandingSettings] = useState<any>(null);
   const [paymentSettings, setPaymentSettings] = useState<any>(null);
@@ -159,6 +164,16 @@ export function DocumentPreview({
         totalsBox: "bg-slate-50/50 rounded-lg border border-slate-200/60",
         accentBg: ""
       };
+      case 'corporate': return {
+        headerBorder: "pb-0 border-none",
+        logoBg: "bg-[#5B4AE8] rounded-lg text-white",
+        titleColor: "text-[#171A21] font-bold",
+        accentBadge: "bg-[#F0EEFF] text-[#5B4AE8] rounded-md",
+        tableHeader: "bg-[#171A21] text-white border-none",
+        highlightText: "text-[#5B4AE8] font-bold",
+        totalsBox: "bg-[#171A21] text-white rounded-xl",
+        accentBg: "bg-[#5B4AE8]"
+      };
       case 'modern':
       default: return {
         headerBorder: "border-b border-slate-200 pb-6",
@@ -176,16 +191,20 @@ export function DocumentPreview({
   const cellPadding = themeId === 'compact' ? "p-1.5" : "p-3";
 
 
-  // Business fallback profiles
-  const businessName = activeBusiness?.name || "GATHEX Technologies Pvt Ltd";
-  const tradeName = activeBusiness?.tradeName || "GATHEX Systems";
-  const businessGstin = activeBusiness?.gstin || "27AAECG8492C1Z2"; // Maharashtra (27)
+  // Business profiles from active workspace
+  const businessName = activeBusiness?.name || "";
+  const tradeName = activeBusiness?.legalName || activeBusiness?.name || "";
+  const businessGstin = activeBusiness?.gstin || "";
   const businessAddressStr = activeBusiness?.address 
-    ? `${activeBusiness.address.street || ""}, ${activeBusiness.address.city || ""}, ${activeBusiness.address.state || ""} - ${activeBusiness.address.postalCode || ""}`
-    : "402, GATHEX Incline Towers, Andheri East, Mumbai, Maharashtra (27) - 400069";
-  const businessPhone = activeBusiness?.phone || "+91 99887 76655";
-  const businessEmail = activeBusiness?.email || "accounts@gathex.com";
-  const businessWebsite = activeBusiness?.website || "https://gathex.com";
+    ? [
+        activeBusiness.address.street,
+        activeBusiness.address.city,
+        activeBusiness.address.state ? `${activeBusiness.address.state}${activeBusiness.address.postalCode ? ` - ${activeBusiness.address.postalCode}` : ""}` : activeBusiness.address.postalCode
+      ].filter(Boolean).join(", ")
+    : "";
+  const businessPhone = activeBusiness?.phone || "";
+  const businessEmail = activeBusiness?.email || "";
+  const businessWebsite = activeBusiness?.website || "";
   const businessBank = {
     accountName: paymentSettings?.accountHolder || activeBusiness?.bankDetails?.accountName || "",
     accountNumber: paymentSettings?.accountNumber || activeBusiness?.bankDetails?.accountNumber || "",
@@ -194,7 +213,7 @@ export function DocumentPreview({
     branch: paymentSettings?.branch || activeBusiness?.bankDetails?.branch || ""
   };
   const hasBankDetails = Boolean(businessBank.bankName && businessBank.accountNumber);
-  const businessUpi = paymentSettings?.upiId || activeBusiness?.upiId || "gathex@hdfcbank";
+  const businessUpi = paymentSettings?.upiId || activeBusiness?.upiId || "";
 
   // Indian currency formatter
   const formatINR = (val: number) => {
@@ -308,7 +327,15 @@ export function DocumentPreview({
   };
 
   const handlePrint = () => {
-    window.print();
+    if (printRef.current) {
+      const cleanup = prepareElementForPrintScaling(printRef.current);
+      setTimeout(() => {
+        window.print();
+        cleanup();
+      }, 50);
+    } else {
+      window.print();
+    }
   };
 
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
@@ -385,6 +412,16 @@ ${businessName}`);
           </div>
         </div>
         <div className="flex gap-2">
+          {invoice.status !== "paid" && (
+            <Button 
+              variant="primary" 
+              className="bg-emerald-600 hover:bg-emerald-700 text-white border-none shadow-sm shadow-emerald-200 dark:shadow-none" 
+              icon={<IndianRupee className="w-4 h-4" />} 
+              onClick={() => setIsRecordPaymentOpen(true)}
+            >
+              Record Payment
+            </Button>
+          )}
           <Button variant="outline" onClick={onClose}>
             Back to List
           </Button>
@@ -480,6 +517,18 @@ ${businessName}`);
 
               {/* Principal Actions */}
               <div className="space-y-2 pt-2">
+                {invoice.status !== "paid" && (
+                  <button
+                    onClick={() => setIsRecordPaymentOpen(true)}
+                    className="w-full flex items-center justify-between gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-200 dark:shadow-none transition-colors cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <IndianRupee className="w-4 h-4" /> Record Settlement
+                    </span>
+                    <span className="px-2 py-0.5 text-[9px] bg-emerald-500 rounded font-semibold uppercase">Collect</span>
+                  </button>
+                )}
+
                 <button
                   onClick={handlePrint}
                   className="w-full flex items-center justify-between gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-200 dark:shadow-none transition-colors cursor-pointer"
@@ -619,8 +668,8 @@ ${businessName}`);
                 themeId === 'classic' ? 'font-serif' : 'font-sans'
               } ${
                 viewMode === "a4" 
-                  ? (themeId === 'compact' ? "max-w-[794px] min-h-[1123px] p-6 md:p-8" : "max-w-[794px] min-h-[1123px] p-10 md:p-14") 
-                  : (themeId === 'compact' ? "p-4 md:p-6" : "p-6 md:p-10")
+                  ? (themeId === 'compact' ? "max-w-[794px] min-h-[1123px] p-4 sm:p-6 md:p-8" : "max-w-[794px] min-h-[1123px] p-4 sm:p-8 md:p-14") 
+                  : (themeId === 'compact' ? "p-3 sm:p-4 md:p-6" : "p-4 sm:p-6 md:p-10")
               }`}
             >
               
@@ -729,7 +778,7 @@ ${businessName}`);
 
               {/* ITEMS TABLE */}
               <div className={`overflow-x-auto ${themeId === 'compact' ? 'py-2' : 'py-6'}`}>
-                <table className="w-full text-left border-collapse text-[11px]">
+                <table className="w-full min-w-[700px] text-left border-collapse text-[11px]">
                   <thead>
                     <tr
                       className={`font-bold uppercase tracking-wider ${themeClasses.tableHeader}`}
@@ -834,9 +883,9 @@ ${businessName}`);
                       <div className="bg-slate-50 p-1.5 rounded-lg border border-slate-100 shrink-0 flex items-center justify-center">
                         <QRCodeSVG 
                           value={generateDynamicUpiString(invoice as any, upiConfig) || ""} 
-                          size={upiConfig.qrDisplaySize ? Math.min(upiConfig.qrDisplaySize, 80) : 75} 
+                          size={upiConfig.qrDisplaySize ? Math.min(upiConfig.qrDisplaySize, 120) : 100} 
                           level="M" 
-                          includeMargin={false} 
+                          includeMargin={true} 
                         />
                       </div>
                       <div className="space-y-1 text-left flex-1 min-w-0">
@@ -1017,6 +1066,63 @@ ${businessName}`);
         </button>
             <ReminderDialog isOpen={isReminderOpen} onClose={() => setIsReminderOpen(false)} invoice={invoice as any} />
             <ShareInvoiceDialog isOpen={isShareDialogOpen} onClose={() => setIsShareDialogOpen(false)} invoice={invoice as any} />
+            
+            {activeBusiness && (
+              <RecordPaymentDialog
+                isOpen={isRecordPaymentOpen}
+                onClose={() => setIsRecordPaymentOpen(false)}
+                businessId={activeBusiness.id}
+                invoices={[{
+                  id: invoice.id,
+                  businessId: activeBusiness.id,
+                  ownerUid: activeBusiness.ownerUid || user?.id || "",
+                  invoiceNumber: invoice.invoiceNumber,
+                  status: invoice.status,
+                  customerId: "",
+                  customerDetails: {
+                    name: invoice.customerName,
+                    companyName: "",
+                    gstin: invoice.customerGstin,
+                    address: { street: invoice.customerAddress || "", city: "", state: invoice.customerState || "", postalCode: "", country: "India" },
+                    email: invoice.customerEmail,
+                    phone: invoice.customerPhone
+                  },
+                  issueDate: invoice.date ? new Date(invoice.date) : new Date(),
+                  dueDate: invoice.dueDate ? new Date(invoice.dueDate) : new Date(),
+                  items: (invoice.items || []).map(it => ({
+                    id: it.productId || "",
+                    productId: it.productId || "",
+                    name: it.name,
+                    hsnSacCode: it.hsnSacCode,
+                    price: it.price,
+                    quantity: it.quantity,
+                    discountAmount: it.discountAmount,
+                    gstRate: it.gstRate,
+                    unit: it.unit,
+                    taxableAmount: (it.quantity * it.price) - it.discountAmount,
+                    cgstAmount: 0,
+                    sgstAmount: 0,
+                    igstAmount: 0,
+                    totalAmount: 0
+                  })),
+                  subTotal: math.subTotal,
+                  totalDiscount: math.totalDiscount,
+                  totalTaxableAmount: math.totalTaxableAmount,
+                  totalCgst: math.totalCgst,
+                  totalSgst: math.totalSgst,
+                  totalIgst: math.totalIgst,
+                  grandTotal: math.grandTotal,
+                  amountPaid: invoice.status === 'paid' ? math.grandTotal : 0,
+                  amountDue: invoice.status === 'paid' ? 0 : math.grandTotal,
+                  createdAt: new Date(),
+                  updatedAt: new Date()
+                }]}
+                defaultInvoiceId={invoice.id}
+                onSuccess={() => {
+                  onStatusChange(invoice, "paid");
+                }}
+              />
+            )}
 </div>
     </div>
   );

@@ -35,7 +35,7 @@ import {
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
-import { exportElementToPDF } from "../../utils/pdfExport";
+import { exportElementToPDF, prepareElementForPrintScaling } from "../../utils/pdfExport";
 import { useToast } from "../ui/Toast";
 import { QRPaymentCard } from "../ui/QRPaymentCard";
 import { generateDynamicUpiString } from "../../utils/upiUtils";
@@ -320,7 +320,15 @@ export function PublicInvoiceView() {
   };
 
   const handlePrint = () => {
-    window.print();
+    if (printRef.current) {
+      const cleanup = prepareElementForPrintScaling(printRef.current);
+      setTimeout(() => {
+        window.print();
+        cleanup();
+      }, 50);
+    } else {
+      window.print();
+    }
   };
 
   const handleDownloadPDF = async () => {

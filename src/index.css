@@ -154,6 +154,48 @@ html.dark .print-paper-sheet * {
     linear-gradient(to bottom, rgba(99, 102, 241, 0.07) 1px, transparent 1px);
 }
 
+/* Responsive page-level content padding utility */
+@utility page-padding-x {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  @media (min-width: 768px) {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  @media (min-width: 1024px) {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Responsive section gap utility */
+@utility section-gap {
+  & > * + * {
+    margin-top: 1rem;
+  }
+  @media (min-width: 768px) {
+    & > * + * {
+      margin-top: 1.25rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    & > * + * {
+      margin-top: 1.5rem;
+    }
+  }
+}
+
+/* Responsive grid gap utility for consistent card grids */
+@utility grid-gap-responsive {
+  gap: 1rem;
+  @media (min-width: 768px) {
+    gap: 1.25rem;
+  }
+  @media (min-width: 1024px) {
+    gap: 1.5rem;
+  }
+}
+
 @keyframes loading-bar {
   0% { transform: translateX(-100%); }
   50% { transform: translateX(30%); }

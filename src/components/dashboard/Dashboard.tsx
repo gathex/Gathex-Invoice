@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "../../context/RouterContext";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../supabase/config";
@@ -8,45 +8,28 @@ import {
   FileSpreadsheet, 
   Users2, 
   Calendar, 
-  ArrowUpRight, 
   TrendingUp, 
-  ArrowDownRight, 
-  Plus, 
-  QrCode, 
-  Sparkles, 
   Activity, 
-  UserPlus, 
-  Download, 
   Clock,
-  ArrowRight,
   ShieldAlert,
-  Trash2,
-  FileText,
   Truck,
-  ArrowDownLeft,
   Percent,
-  ShoppingBag,
   BadgePercent
 } from "lucide-react";
 import { Card } from "../ui/Card";
-import { Badge } from "../ui/Badge";
-import { Skeleton } from "../ui/Skeleton";
 import { motion } from "framer-motion";
-import { useToast } from "../ui/Toast";
-import { EmptyState } from "../ui/EmptyState";
-import { Customer, Invoice, ProductService } from "../../types";
-import { notificationService } from "../../services/notificationService";
+import { Invoice } from "../../types";
 
 export function Dashboard() {
   const { navigate } = useRouter();
   const { user, activeBusiness } = useAuth();
-  const toast = useToast();
 
   // Selected chart range
-  const [selectedChartRange, setSelectedChartRange] = useState("6m");
+  const [selectedChartRange, setSelectedChartRange] = useState<"3m" | "6m" | "12m">("6m");
+  const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Firestore synced states
+  // Synced states
   const [customersCount, setCustomersCount] = useState(0);
   const [b2bCustomersCount, setB2bCustomersCount] = useState(0);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -55,8 +38,6 @@ export function Dashboard() {
   const [creditNotes, setCreditNotes] = useState<any[]>([]);
   const [debitNotes, setDebitNotes] = useState<any[]>([]);
   const [challans, setChallans] = useState<any[]>([]);
-  const [purchaseOrders, setPurchaseOrders] = useState<any[]>([]);
-  const [isPopulating, setIsPopulating] = useState(false);
 
   // Subscriptions to live Supabase data
   useEffect(() => {
@@ -76,7 +57,7 @@ export function Dashboard() {
         setB2bCustomersCount(custs.filter(c => !!c.gstin).length);
       }
 
-      // 2. Fetch Sales Documents (invoices, quotations, credit_notes, debit_notes, delivery_challans, purchase_orders)
+      // 2. Fetch Sales Documents
       const { data: docs } = await supabase
         .from('sales_documents')
         .select('*')
@@ -88,7 +69,6 @@ export function Dashboard() {
         const creditList: any[] = [];
         const debitList: any[] = [];
         const challanList: any[] = [];
-        const poList: any[] = [];
 
         docs.forEach(d => {
           const mapped = {
@@ -122,7 +102,6 @@ export function Dashboard() {
           else if (d.doc_type === 'credit_note') creditList.push(mapped);
           else if (d.doc_type === 'debit_note') debitList.push(mapped);
           else if (d.doc_type === 'delivery_challan') challanList.push(mapped);
-          else if (d.doc_type === 'purchase_order') poList.push(mapped);
         });
 
         setInvoices(invList);
@@ -130,7 +109,6 @@ export function Dashboard() {
         setCreditNotes(creditList);
         setDebitNotes(debitList);
         setChallans(challanList);
-        setPurchaseOrders(poList);
       }
 
       // 3. Fetch Document Activities
@@ -186,7 +164,7 @@ export function Dashboard() {
 
   const overdueInvoicesCount = invoices.filter(inv => inv.status === "overdue").length;
 
-  // Phase 4 Sales Documents & Customer Workflow Analytics
+  // Commercial Sales Documents & Funnel Analytics
   const totalQuotationsCount = quotations.length;
   const pendingQuotationsCount = quotations.filter(q => q.status === "sent" || q.status === "draft").length;
   const acceptedQuotationsCount = quotations.filter(q => q.status === "accepted" || q.status === "converted").length;
@@ -201,43 +179,6 @@ export function Dashboard() {
   const totalChallansCount = challans.length;
   const dispatchedChallansCount = challans.filter(dc => dc.status === "dispatched").length;
   const deliveredChallansCount = challans.filter(dc => dc.status === "delivered").length;
-
-  // Render metrics array
-  
-  const metrics = [
-    {
-      title: "Active Quotations",
-      value: `${quotations.length}`,
-      change: `${quotations.filter(q => q.status === "draft").length} pending approval`,
-      isPositive: true,
-      icon: <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />,
-      bg: "bg-indigo-50 dark:bg-indigo-950/20"
-    },
-    {
-      title: "Credit Notes Issued",
-      value: `${creditNotes.length}`,
-      change: "Outstanding notes",
-      isPositive: true,
-      icon: <Percent className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />,
-      bg: "bg-emerald-50 dark:bg-emerald-950/20"
-    },
-    {
-      title: "Active Purchase Orders",
-      value: `${purchaseOrders.length}`,
-      change: "Pending fulfillment",
-      isPositive: true,
-      icon: <ShoppingBag className="w-5 h-5 text-amber-600 dark:text-amber-400" />,
-      bg: "bg-amber-50 dark:bg-amber-950/20"
-    },
-    {
-      title: "Delivery Challans",
-      value: `${challans.length}`,
-      change: "Shipped & delivered",
-      isPositive: true,
-      icon: <Truck className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />,
-      bg: "bg-cyan-50 dark:bg-cyan-950/20"
-    }
-  ];
 
   const primaryMetrics = [
     {
@@ -274,35 +215,6 @@ export function Dashboard() {
     }
   ];
 
-  const quickActions = [
-    {
-      title: "New GST Invoice",
-      desc: "Raise compliant B2B/B2C invoice",
-      icon: <Plus className="w-5 h-5 text-indigo-600" />,
-      onClick: () => navigate("invoices")
-    },
-    {
-      title: "Add GSTIN Client",
-      desc: "Auto-validate GSTIN registration",
-      icon: <UserPlus className="w-5 h-5 text-emerald-600" />,
-      onClick: () => navigate("customers")
-    },
-    {
-      title: "Enroll Catalog Item",
-      desc: "Map HSN/SAC products & services",
-      icon: <QrCode className="w-5 h-5 text-cyan-600" />,
-      onClick: () => navigate("products")
-    },
-    {
-      title: "Tax Filing Summary",
-      desc: "Review CGST/SGST/IGST collections",
-      icon: <Download className="w-5 h-5 text-amber-600" />,
-      onClick: () => {
-        toast.success("Ready for export", "Your outward GSTR ledger export has been queued.");
-      }
-    }
-  ];
-
   // Helper relative time formatter
   function formatRelativeTime(date: Date): string {
     const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
@@ -314,282 +226,94 @@ export function Dashboard() {
     return date.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
   }
 
-  // Populate dynamic high-fidelity Demo Data inside Supabase
-  const handlePopulateDemoData = async () => {
-    if (!user || !activeBusiness || isPopulating) return;
+  // Real-Data Monthly Billing Aggregation
+  const rangeMonthsCount = selectedChartRange === "3m" ? 3 : selectedChartRange === "12m" ? 12 : 6;
 
-    setIsPopulating(true);
-    toast.info("Enrolling high-fidelity SaaS sandbox data...", "Generating verified GSTIN businesses, catalog items, and tax-inclusive invoices.");
+  const chartData = useMemo(() => {
+    const months: {
+      label: string;
+      fullLabel: string;
+      billed: number;
+      paid: number;
+      count: number;
+    }[] = [];
 
-    try {
-      // 1. Create 3 Customers
-      const dummyCustomers = [
-        {
-          name: "Amit Patel",
-          company_name: "TechVantage Solutions Pvt Ltd",
-          gstin: "27AAPCA1234A1Z5",
-          email: "accounts@techvantage.in",
-          phone: "+91 91234 56789",
-          billing_address: {
-            street: "TechVantage Tower, Hiranandani Gardens, Powai",
-            city: "Mumbai",
-            state: "Maharashtra (27)",
-            postalCode: "400076",
-            country: "India"
-          },
-          is_archived: false,
-          owner_uid: user.uid,
-          business_id: activeBusiness.id
-        },
-        {
-          name: "Suresh Gowda",
-          company_name: "Alpha Retailers Group",
-          gstin: "29AABCA9876C1Z9",
-          email: "finance@alpharetail.com",
-          phone: "+91 81234 56789",
-          billing_address: {
-            street: "Alpha Plaza, 100 Feet Road, Indiranagar",
-            city: "Bengaluru",
-            state: "Karnataka (29)",
-            postalCode: "560038",
-            country: "India"
-          },
-          is_archived: false,
-          owner_uid: user.uid,
-          business_id: activeBusiness.id
-        },
-        {
-          name: "Rajesh Sen",
-          company_name: "Nirman Infra Projects",
-          gstin: "19AAPCN1234F1Z8",
-          email: "contact@nirmaninfra.in",
-          phone: "+91 71234 56789",
-          billing_address: {
-            street: "Nirman House, AJC Bose Road",
-            city: "Kolkata",
-            state: "West Bengal (19)",
-            postalCode: "700014",
-            country: "India"
-          },
-          is_archived: false,
-          owner_uid: user.uid,
-          business_id: activeBusiness.id
-        }
-      ];
+    const now = new Date();
+    for (let i = rangeMonthsCount - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const year = d.getFullYear();
+      const month = d.getMonth();
+      const label = d.toLocaleDateString("en-IN", { month: "short" });
+      const fullLabel = d.toLocaleDateString("en-IN", { month: "short", year: "numeric" });
 
-      const { data: insertedCusts } = await supabase
-        .from('customers')
-        .insert(dummyCustomers)
-        .select('id');
+      const matching = invoices.filter(inv => {
+        if (!inv.issueDate || inv.status === "void" || inv.status === "draft") return false;
+        const idate = new Date(inv.issueDate);
+        return idate.getFullYear() === year && idate.getMonth() === month;
+      });
 
-      const customerIds = (insertedCusts || []).map(c => c.id);
+      const billed = matching.reduce((sum, inv) => sum + (Number(inv.grandTotal) || 0), 0);
+      const paid = matching.reduce((sum, inv) => {
+        if (inv.status === "paid") return sum + (Number(inv.grandTotal) || 0);
+        return sum + (Number(inv.amountPaid) || 0);
+      }, 0);
 
-      // 2. Create 3 Products
-      const dummyProducts = [
-        {
-          name: "SaaS Enterprise Server License",
-          type: "service",
-          sku_code: "SKU-SE-001",
-          hsn_sac_code: "997331",
-          price: 85000,
-          unit: "Year",
-          gst_rate: 18,
-          cess_rate: 0,
-          owner_uid: user.uid,
-          business_id: activeBusiness.id
-        },
-        {
-          name: "Industrial Aluminum Castings",
-          type: "product",
-          sku_code: "SKU-AL-204",
-          hsn_sac_code: "760110",
-          price: 1240,
-          unit: "Kg",
-          gst_rate: 18,
-          cess_rate: 0,
-          owner_uid: user.uid,
-          business_id: activeBusiness.id
-        },
-        {
-          name: "Cloud Server Hosting Block",
-          type: "service",
-          sku_code: "SKU-CS-500",
-          hsn_sac_code: "998315",
-          price: 4200,
-          unit: "Month",
-          gst_rate: 18,
-          cess_rate: 0,
-          owner_uid: user.uid,
-          business_id: activeBusiness.id
-        }
-      ];
-
-      await supabase.from('products_services').insert(dummyProducts);
-
-      // 3. Create 3 Invoices
-      const today = new Date();
-      const pastDate = (days: number) => {
-        const d = new Date();
-        d.setDate(today.getDate() - days);
-        return d.toISOString().split("T")[0];
-      };
-
-      const dummyInvoices = [
-        {
-          doc_type: "invoice",
-          doc_number: "GATHEX/2026/001",
-          status: "paid",
-          customer_id: customerIds[0] || null,
-          customer_details: {
-            name: dummyCustomers[0].name,
-            companyName: dummyCustomers[0].company_name,
-            gstin: dummyCustomers[0].gstin,
-            email: dummyCustomers[0].email,
-            phone: dummyCustomers[0].phone,
-            address: dummyCustomers[0].billing_address
-          },
-          issue_date: pastDate(10),
-          due_date: pastDate(-5),
-          sub_total: 101800,
-          total_discount: 0,
-          total_taxable_amount: 101800,
-          total_cgst: 9162,
-          total_sgst: 9162,
-          total_igst: 0,
-          grand_total: 120124,
-          amount_paid: 120124,
-          amount_due: 0,
-          notes: "Auto-generated sandboxed invoice demonstration.",
-          terms_conditions: "Subject to Maharashtra jurisdiction.",
-          owner_uid: user.uid,
-          business_id: activeBusiness.id
-        },
-        {
-          doc_type: "invoice",
-          doc_number: "GATHEX/2026/002",
-          status: "sent",
-          customer_id: customerIds[1] || null,
-          customer_details: {
-            name: dummyCustomers[1].name,
-            companyName: dummyCustomers[1].company_name,
-            gstin: dummyCustomers[1].gstin,
-            email: dummyCustomers[1].email,
-            phone: dummyCustomers[1].phone,
-            address: dummyCustomers[1].billing_address
-          },
-          issue_date: pastDate(4),
-          due_date: pastDate(-11),
-          sub_total: 62000,
-          total_discount: 2000,
-          total_taxable_amount: 60000,
-          total_cgst: 0,
-          total_sgst: 0,
-          total_igst: 10800,
-          grand_total: 70800,
-          amount_paid: 0,
-          amount_due: 70800,
-          notes: "Dynamic dynamic UPI QR settlement active.",
-          terms_conditions: "Dynamic interest charged for late settlement.",
-          owner_uid: user.uid,
-          business_id: activeBusiness.id
-        },
-        {
-          doc_type: "invoice",
-          doc_number: "GATHEX/2026/003",
-          status: "overdue",
-          customer_id: customerIds[2] || null,
-          customer_details: {
-            name: dummyCustomers[2].name,
-            companyName: dummyCustomers[2].company_name,
-            gstin: dummyCustomers[2].gstin,
-            email: dummyCustomers[2].email,
-            phone: dummyCustomers[2].phone,
-            address: dummyCustomers[2].billing_address
-          },
-          issue_date: pastDate(25),
-          due_date: pastDate(10),
-          sub_total: 148800,
-          total_discount: 4800,
-          total_taxable_amount: 144000,
-          total_cgst: 0,
-          total_sgst: 0,
-          total_igst: 25920,
-          grand_total: 169920,
-          amount_paid: 0,
-          amount_due: 169920,
-          notes: "Overdue alert flagged automatically by GST core engine.",
-          terms_conditions: "Late fees subject to West Bengal state regulations.",
-          owner_uid: user.uid,
-          business_id: activeBusiness.id
-        }
-      ];
-
-      await supabase.from('sales_documents').insert(dummyInvoices);
-
-      // 4. Create 4 Activity Logs
-      const logs = [
-        {
-          business_id: activeBusiness.id,
-          owner_uid: user.uid,
-          document_id: "demo",
-          document_type: "invoice",
-          document_number: "GATHEX/2026/001",
-          action: "UPI Payment Received",
-          description: "Received ₹1,20,124.00 from TechVantage Solutions Pvt Ltd.",
-          user_id: user.uid,
-          user_name: user.displayName || "Partner"
-        },
-        {
-          business_id: activeBusiness.id,
-          owner_uid: user.uid,
-          document_id: "demo",
-          document_type: "invoice",
-          document_number: "GATHEX/2026/002",
-          action: "B2B Invoice Raised",
-          description: "Raised compliant GATHEX/2026/002 with 18% IGST.",
-          user_id: user.uid,
-          user_name: user.displayName || "Partner"
-        }
-      ];
-
-      await supabase.from('document_activities').insert(logs);
-
-      toast.success("Sandbox populated", "GST compliance entities, clients, catalog specs, and paid/pending tax invoices successfully generated.");
-    } catch (err) {
-      toast.error("Sandbox failure", "Error seeding sandbox databases.");
-      console.error(err);
-    } finally {
-      setIsPopulating(false);
+      months.push({
+        label: rangeMonthsCount <= 6 ? fullLabel : label,
+        fullLabel,
+        billed,
+        paid,
+        count: matching.length
+      });
     }
-  };
 
-  // Clear demo data
-  const handleClearDashboard = async () => {
-    if (!user || !activeBusiness || isPopulating) return;
+    return months;
+  }, [invoices, rangeMonthsCount]);
 
-    setIsPopulating(true);
-    toast.info("Clearing sandbox database...", "Removing sandboxed catalog entities, clients, activity timelines, and invoices.");
+  const totalBilledInPeriod = useMemo(() => chartData.reduce((sum, m) => sum + m.billed, 0), [chartData]);
+  const hasBillingData = totalBilledInPeriod > 0;
+  const maxBilled = useMemo(() => Math.max(...chartData.map(m => m.billed), 0), [chartData]);
 
-    try {
-      await supabase.from('sales_documents').delete().eq('business_id', activeBusiness.id);
-      await supabase.from('customers').delete().eq('business_id', activeBusiness.id);
-      await supabase.from('products_services').delete().eq('business_id', activeBusiness.id);
-      await supabase.from('document_activities').delete().eq('business_id', activeBusiness.id);
+  // SVG Chart Geometry
+  const svgWidth = 1000;
+  const baselineY = 170;
+  const topY = 25;
+  const usableHeight = baselineY - topY;
+  const paddingX = 40;
 
-      toast.success("Database Reset Complete", "Dashboard metric overlays and physical collections have been completely cleared.");
-    } catch (err) {
-      toast.error("Reset Error", "Failed to flush sandbox collections.");
-      console.error(err);
-    } finally {
-      setIsPopulating(false);
+  const points = useMemo(() => {
+    return chartData.map((item, index) => {
+      const x = paddingX + (index / Math.max(chartData.length - 1, 1)) * (svgWidth - 2 * paddingX);
+      const y = hasBillingData && maxBilled > 0
+        ? baselineY - (item.billed / maxBilled) * usableHeight * 0.85
+        : baselineY;
+      return { x, y, item, index };
+    });
+  }, [chartData, hasBillingData, maxBilled, baselineY, usableHeight, paddingX, svgWidth]);
+
+  const linePath = useMemo(() => {
+    if (points.length === 0) return "";
+    if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+    let d = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const curr = points[i];
+      const next = points[i + 1];
+      const c1x = curr.x + (next.x - curr.x) / 2;
+      const c1y = curr.y;
+      const c2x = curr.x + (next.x - curr.x) / 2;
+      const c2y = next.y;
+      d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${next.x} ${next.y}`;
     }
-  };
+    return d;
+  }, [points]);
 
-  // Check if there is absolutely no data
-  const isCleared = invoices.length === 0 && customersCount === 0;
+  const areaPath = useMemo(() => {
+    if (points.length === 0 || !hasBillingData) return "";
+    return `${linePath} L ${points[points.length - 1].x} ${baselineY} L ${points[0].x} ${baselineY} Z`;
+  }, [linePath, points, hasBillingData, baselineY]);
 
   return (
-    <div className="space-y-8 font-sans">
+    <div className="space-y-6 md:space-y-8 font-sans">
       {/* Dashboard Top Greeting & Status banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -603,7 +327,7 @@ export function Dashboard() {
           </p>
         </div>
         
-        {/* Date Display & Actions */}
+        {/* Date Display */}
         <div className="flex flex-wrap items-center gap-2.5 self-start">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 shadow-sm">
             <Calendar className="w-4 h-4 text-indigo-500" />
@@ -613,7 +337,7 @@ export function Dashboard() {
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
         {primaryMetrics.map((metric, i) => (
           <motion.div
             key={i}
@@ -632,15 +356,7 @@ export function Dashboard() {
                   </h3>
                 </div>
                 <div className={`p-2.5 rounded-xl ${metric.bg} transition-transform group-hover:scale-105`}>
-                  {i === 0 ? (
-                    <div className="icon-wrapper-selector">
-                      <span style={{ color: "#000000" }}>
-                        {metric.icon}
-                      </span>
-                    </div>
-                  ) : (
-                    metric.icon
-                  )}
+                  {metric.icon}
                 </div>
               </div>
               
@@ -663,414 +379,410 @@ export function Dashboard() {
         ))}
       </div>
 
-      {/* Chart and Quick Actions section */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Analytics Chart (Custom Vector Design) */}
-        <Card className="lg:col-span-8 flex flex-col justify-between border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900">
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-4 mb-4">
-            <div>
-              <h3 className="font-bold text-slate-900 dark:text-white font-display">Outward Billing Analytics</h3>
-              <p className="text-xs text-slate-400">CGST/SGST/IGST outward billing timeline</p>
-            </div>
-            <div className="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-lg">
-              {["3m", "6m", "12m"].map((range) => (
-                <button
-                  key={range}
-                  onClick={() => setSelectedChartRange(range)}
-                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
-                    selectedChartRange === range 
-                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm" 
-                      : "text-slate-400 hover:text-slate-600"
-                  }`}
-                >
-                  {range.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Gorgeous custom vector chart */}
-          <div className="h-64 relative flex items-end justify-between px-2 pt-6">
-            {/* Gridlines */}
-            <div className="absolute inset-x-0 bottom-6 top-6 flex flex-col justify-between pointer-events-none">
-              <div className="border-b border-slate-100 dark:border-slate-800/50 w-full" />
-              <div className="border-b border-slate-100 dark:border-slate-800/50 w-full" />
-              <div className="border-b border-slate-100 dark:border-slate-800/50 w-full" />
-              <div className="border-b border-slate-100 dark:border-slate-800/50 w-full" />
-            </div>
-
-            {/* Custom SVG Line and Area Chart representing live SaaS dashboard */}
-            <svg className="absolute inset-x-0 bottom-6 h-48 w-full z-10 overflow-visible" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#4f46e5" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#4f46e5" stopOpacity="0" />
-                </linearGradient>
-                <linearGradient id="chartGradientCyan" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.2" />
-                  <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              
-              {/* Area Path */}
-              {!isCleared ? (
-                <>
-                  <path
-                    d="M 10 160 Q 80 120 150 140 T 290 80 T 430 110 T 570 30 T 710 40 L 710 160 L 10 160 Z"
-                    fill="url(#chartGradient)"
-                    className="transition-all duration-500"
-                  />
-                  <path
-                    d="M 10 160 Q 80 150 150 120 T 290 110 T 430 90 T 570 60 T 710 50"
-                    fill="none"
-                    stroke="#06b6d4"
-                    strokeWidth="1.5"
-                    strokeDasharray="4 4"
-                    opacity="0.6"
-                  />
-                  
-                  {/* Main Line Path */}
-                  <path
-                    d="M 10 160 Q 80 120 150 140 T 290 80 T 430 110 T 570 30 T 710 40"
-                    fill="none"
-                    stroke="#4f46e5"
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                    className="transition-all duration-500"
-                  />
-
-                  {/* Data points */}
-                  <circle cx="150" cy="140" r="4" fill="#4f46e5" stroke="#fff" strokeWidth="2" />
-                  <circle cx="290" cy="80" r="4" fill="#4f46e5" stroke="#fff" strokeWidth="2" />
-                  <circle cx="430" cy="110" r="4" fill="#4f46e5" stroke="#fff" strokeWidth="2" />
-                  <circle cx="570" cy="30" r="5" fill="#06b6d4" stroke="#fff" strokeWidth="2.5" className="animate-pulse" />
-                </>
-              ) : (
-                <>
-                  {/* Flat baseline in cleared state */}
-                  <path
-                    d="M 10 160 L 710 160"
-                    fill="none"
-                    stroke="#e2e8f0"
-                    strokeWidth="2"
-                    strokeDasharray="4 4"
-                    className="dark:stroke-slate-800"
-                  />
-                </>
+      {/* Outward Billing Analytics Chart (Full Width, Truthful Data) */}
+      <Card className="flex flex-col justify-between border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
+        <div className="p-5 md:p-6 pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800/60">
+          <div>
+            <div className="flex items-center gap-3">
+              <h3 className="font-bold text-slate-900 dark:text-white font-display text-base md:text-lg">
+                Outward Billing Analytics
+              </h3>
+              {hasBillingData && (
+                <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
+                  ₹{totalBilledInPeriod.toLocaleString("en-IN", { minimumFractionDigits: 2 })} Total
+                </span>
               )}
-            </svg>
-
-            {isCleared && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 dark:bg-slate-900/40 z-20 rounded-xl backdrop-blur-[1px]">
-                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">No database records registered</p>
-                <p className="text-xs text-slate-400 mt-1">Create outward invoices to populate metrics.</p>
-              </div>
-            )}
-
-            {/* Labels under the bars */}
-            <div className="w-full flex justify-between text-[11px] font-bold text-slate-400 z-10 pt-2 border-t border-slate-100 dark:border-slate-800/80">
-              <span>Nov 2025</span>
-              <span>Dec 2025</span>
-              <span>Jan 2026</span>
-              <span>Feb 2026</span>
-              <span>Mar 2026</span>
-              <span>Apr 2026 (FY26)</span>
             </div>
+            <p className="text-xs text-slate-400 mt-1">
+              {hasBillingData 
+                ? "Monthly outward taxable sales and realized collections based on active tax invoices"
+                : "Real-time outward sales timeline based on issued GST tax invoices"}
+            </p>
           </div>
-        </Card>
-
-        {/* Quick Actions (Bento Box Card) */}
-        <div className="lg:col-span-4 flex flex-col gap-4">
-          <h4 className="font-extrabold text-slate-800 dark:text-slate-200 font-display flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-indigo-500" /> Merchant Utilities
-          </h4>
-          <div className="grid grid-cols-1 gap-3.5">
-            {quickActions.map((action, idx) => (
+          
+          <div className="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-lg self-start sm:self-auto">
+            {(["3m", "6m", "12m"] as const).map((range) => (
               <button
-                key={idx}
-                onClick={action.onClick}
-                className="w-full text-left p-4 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-all flex items-center justify-between group cursor-pointer active:scale-[0.99]"
+                key={range}
+                onClick={() => setSelectedChartRange(range)}
+                className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                  selectedChartRange === range 
+                    ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm" 
+                    : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                }`}
               >
-                <div className="flex items-center gap-3.5">
-                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950/40 transition-colors">
-                    {action.icon}
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 font-display">
-                      {action.title}
-                    </h4>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      {action.desc}
-                    </p>
-                  </div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                {range.toUpperCase()}
               </button>
             ))}
           </div>
         </div>
-      </div>
 
-      {/* Commercial Sales Funnel & Secondary Document Analytics (Phase 4) */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h3 className="text-lg font-black tracking-tight text-slate-900 dark:text-white font-display flex items-center gap-2">
-              <BadgePercent className="w-5 h-5 text-indigo-500" /> Commercial Sales Pipeline & Logistics
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Live operational audit of customer estimates, dispatch logistics, and credit ledger offsets.</p>
+        {/* Vector Chart Area */}
+        <div className="h-64 relative flex flex-col justify-between px-4 pt-6 pb-2">
+          {/* Subtle Gridlines */}
+          <div className="absolute inset-x-4 bottom-12 top-6 flex flex-col justify-between pointer-events-none">
+            <div className="border-b border-slate-100 dark:border-slate-800/50 w-full" />
+            <div className="border-b border-slate-100 dark:border-slate-800/50 w-full" />
+            <div className="border-b border-slate-100 dark:border-slate-800/50 w-full" />
+            <div className="border-b border-slate-100 dark:border-slate-800/50 w-full" />
           </div>
-          <div className="text-xs font-mono font-bold px-3 py-1 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-full">
-            Real-Time Sync
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {/* 1. Quotation Pipeline Widget */}
-          <Card className="border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col justify-between p-5">
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Quotation Funnel</span>
-                <span className="text-xs font-bold font-mono text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded">
-                  {conversionRate}% Convert Rate
-                </span>
-              </div>
-              <h4 className="text-xl font-black font-mono text-slate-800 dark:text-slate-100 mt-2">
-                ₹{totalQuotationsValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </h4>
-              <p className="text-xs text-slate-400 mt-1">Total value across {totalQuotationsCount} commercial quotes.</p>
-            </div>
-            
-            <div className="mt-5 pt-3 border-t border-slate-50 dark:border-slate-800/60 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-              <span className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-amber-500" /> {pendingQuotationsCount} Pending
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" /> {acceptedQuotationsCount} Accepted
-              </span>
-            </div>
-          </Card>
+          {/* Dynamic SVG Vector Chart */}
+          <div className="relative h-48 w-full">
+            <svg 
+              className="absolute inset-0 h-full w-full overflow-visible" 
+              viewBox={`0 0 ${svgWidth} 200`} 
+              preserveAspectRatio="none"
+            >
+              <defs>
+                <linearGradient id="realChartGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#4f46e5" stopOpacity="0.22" />
+                  <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.0" />
+                </linearGradient>
+              </defs>
 
-          {/* 2. Credit & Debit Notes Widget */}
-          <Card className="border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col justify-between p-5">
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ledger Offsets & Notes</span>
-                <span className="text-[10px] font-bold text-slate-400">Credit vs Debit</span>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mt-2">
-                <div>
-                  <span className="text-[10px] text-slate-400 block font-bold">Credit Issued</span>
-                  <span className="text-base font-bold font-mono text-rose-600 dark:text-rose-400 block mt-0.5">
-                    ₹{totalCreditNotesValue.toLocaleString('en-IN')}
-                  </span>
-                  <span className="text-[10px] text-slate-400 mt-0.5 block">{creditNotes.length} notes</span>
+              {hasBillingData ? (
+                <>
+                  {/* Shaded Area */}
+                  <path
+                    d={areaPath}
+                    fill="url(#realChartGradient)"
+                    className="transition-all duration-300"
+                  />
+
+                  {/* Primary Solid Outward Billing Line */}
+                  <path
+                    d={linePath}
+                    fill="none"
+                    stroke="#4f46e5"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="transition-all duration-300"
+                  />
+
+                  {/* Data Points */}
+                  {points.map((p) => {
+                    const isHovered = hoveredPoint === p.index;
+                    return (
+                      <g key={p.index} className="cursor-pointer" onMouseEnter={() => setHoveredPoint(p.index)} onMouseLeave={() => setHoveredPoint(null)}>
+                        <circle
+                          cx={p.x}
+                          cy={p.y}
+                          r={isHovered ? 6 : 4}
+                          fill={p.item.billed > 0 ? "#4f46e5" : "#94a3b8"}
+                          stroke="#ffffff"
+                          strokeWidth={isHovered ? 2.5 : 2}
+                          className="transition-all duration-150"
+                        />
+                      </g>
+                    );
+                  })}
+                </>
+              ) : (
+                /* Flat Baseline when there is no billing activity */
+                <line
+                  x1={paddingX}
+                  y1={baselineY}
+                  x2={svgWidth - paddingX}
+                  y2={baselineY}
+                  stroke="#cbd5e1"
+                  strokeWidth="2"
+                  strokeDasharray="6 6"
+                  className="dark:stroke-slate-800"
+                />
+              )}
+            </svg>
+
+            {/* Hover Tooltip Overlay */}
+            {hasBillingData && hoveredPoint !== null && points[hoveredPoint] && (
+              <div 
+                className="absolute z-30 pointer-events-none transform -translate-x-1/2 -translate-y-full mb-2 bg-slate-900 text-white text-xs py-1.5 px-3 rounded-lg shadow-xl border border-slate-700 font-sans"
+                style={{
+                  left: `${(points[hoveredPoint].x / svgWidth) * 100}%`,
+                  top: `${(points[hoveredPoint].y / 200) * 100}%`
+                }}
+              >
+                <div className="font-semibold text-slate-200">{points[hoveredPoint].item.fullLabel}</div>
+                <div className="text-emerald-400 font-bold font-mono">
+                  ₹{points[hoveredPoint].item.billed.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                 </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 block font-bold">Debit Issued</span>
-                  <span className="text-base font-bold font-mono text-teal-600 dark:text-teal-400 block mt-0.5">
-                    ₹{totalDebitNotesValue.toLocaleString('en-IN')}
-                  </span>
-                  <span className="text-[10px] text-slate-400 mt-0.5 block">{debitNotes.length} notes</span>
+                <div className="text-[10px] text-slate-400 mt-0.5">
+                  {points[hoveredPoint].item.count} invoice{points[hoveredPoint].item.count === 1 ? "" : "s"} raised
                 </div>
               </div>
-            </div>
-
-            <div className="mt-3 text-[10px] text-slate-400 bg-slate-50 dark:bg-slate-950 px-3 py-1.5 rounded-lg flex items-center gap-1">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-indigo-500" />
-              <span>Used to correct tax mistakes or adjust balances</span>
-            </div>
-          </Card>
-
-          {/* 3. Delivery Logistics Widget */}
-          <Card className="border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col justify-between p-5">
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Logistics & Dispatches</span>
-                <span className="text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded">
-                  {totalChallansCount} Challans
-                </span>
-              </div>
-              <h4 className="text-xl font-black font-display text-slate-800 dark:text-slate-100 mt-2">
-                {deliveredChallansCount} / {totalChallansCount} Delivered
-              </h4>
-              <p className="text-xs text-slate-400 mt-1">Delivery challans issued for physical consignments.</p>
-            </div>
-
-            <div className="mt-5 pt-3 border-t border-slate-50 dark:border-slate-800/60 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-              <span className="flex items-center gap-1">
-                <Truck className="w-3.5 h-3.5 text-amber-500" /> {dispatchedChallansCount} Dispatched
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-slate-400" /> {totalChallansCount - dispatchedChallansCount - deliveredChallansCount} Drafts
-              </span>
-            </div>
-          </Card>
-        </div>
-
-        {/* Sales Pipeline Flow Visualizer */}
-        <Card className="border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-4">Cash-to-Cash Pipeline Flow Funnel</span>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 relative">
-            {/* Step 1 */}
-            <div className="p-4 bg-violet-50/40 dark:bg-violet-950/10 border border-violet-100 dark:border-violet-900/30 rounded-xl relative">
-              <span className="text-[9px] font-black uppercase text-violet-500 tracking-wider">Step 1 — Estimate</span>
-              <h5 className="text-sm font-black text-slate-800 dark:text-slate-100 mt-1">Quotations Raised</h5>
-              <div className="flex items-baseline gap-1 mt-2">
-                <span className="text-lg font-bold font-mono text-violet-700 dark:text-violet-400">{totalQuotationsCount}</span>
-                <span className="text-[10px] text-slate-400 font-medium">issued</span>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="p-4 bg-indigo-50/40 dark:bg-indigo-950/10 border border-indigo-100 dark:border-indigo-900/30 rounded-xl">
-              <span className="text-[9px] font-black uppercase text-indigo-500 tracking-wider">Step 2 — Accepted</span>
-              <h5 className="text-sm font-black text-slate-800 dark:text-slate-100 mt-1">Customer Approval</h5>
-              <div className="flex items-baseline gap-1 mt-2">
-                <span className="text-lg font-bold font-mono text-indigo-700 dark:text-indigo-400">{acceptedQuotationsCount}</span>
-                <span className="text-[10px] text-slate-400 font-medium">approved ({conversionRate}%)</span>
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="p-4 bg-cyan-50/40 dark:bg-cyan-950/10 border border-cyan-100 dark:border-cyan-900/30 rounded-xl">
-              <span className="text-[9px] font-black uppercase text-cyan-500 tracking-wider">Step 3 — Billed</span>
-              <h5 className="text-sm font-black text-slate-800 dark:text-slate-100 mt-1">Invoices Raised</h5>
-              <div className="flex items-baseline gap-1 mt-2">
-                <span className="text-lg font-bold font-mono text-cyan-700 dark:text-cyan-400">{activeInvoicesCount}</span>
-                <span className="text-[10px] text-slate-400 font-medium">billed</span>
-              </div>
-            </div>
-
-            {/* Step 4 */}
-            <div className="p-4 bg-emerald-50/40 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/30 rounded-xl">
-              <span className="text-[9px] font-black uppercase text-emerald-500 tracking-wider">Step 4 — Cash Flow</span>
-              <h5 className="text-sm font-black text-slate-800 dark:text-slate-100 mt-1">Realized Payments</h5>
-              <div className="flex items-baseline gap-1 mt-2">
-                <span className="text-lg font-bold font-mono text-emerald-700 dark:text-emerald-400">{paidInvoicesCount}</span>
-                <span className="text-[10px] text-slate-400 font-medium">paid ({activeInvoicesCount > 0 ? Math.round((paidInvoicesCount / activeInvoicesCount) * 100) : 0}%)</span>
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Recent Activity and GST Status Ledger */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Recent Activity Ledger */}
-        <Card className="lg:col-span-8 border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900">
-          <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-100 dark:border-slate-800/60">
-            <h3 className="font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
-              <Activity className="w-4.5 h-4.5 text-indigo-500" /> Recent Activity Audit Trail
-            </h3>
-            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Live logs</span>
-          </div>
-
-          <div className="space-y-4">
-            {activities.length === 0 ? (
-              <EmptyState
-                icon={<Activity className="w-12 h-12 text-slate-300 dark:text-slate-700" />}
-                title="No Recent Activities"
-                description="Your business audit ledger is currently empty. Raising invoices or registering clients will populate this timeline."
-              />
-            ) : (
-              activities.map((act) => (
-                <div 
-                  key={act.id} 
-                  className="flex items-start justify-between p-3.5 rounded-xl bg-slate-50/50 dark:bg-slate-950/20 hover:bg-slate-50 dark:hover:bg-slate-950/40 transition-colors border border-transparent hover:border-slate-200/40 dark:hover:border-slate-800/40"
-                >
-                  <div className="flex gap-3.5">
-                    <div className="mt-1">
-                      <span className="relative flex h-2 w-2">
-                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                          act.status === "danger" ? "bg-rose-400" : act.status === "warning" ? "bg-amber-400" : "bg-emerald-400"
-                        }`} />
-                        <span className={`relative inline-flex rounded-full h-2 w-2 ${
-                          act.status === "danger" ? "bg-rose-500" : act.status === "warning" ? "bg-amber-500" : "bg-emerald-500"
-                        }`} />
-                      </span>
-                    </div>
-                    <div>
-                      <h5 className="text-sm font-bold text-slate-800 dark:text-slate-200 font-display">
-                        {act.event}
-                      </h5>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-sans leading-relaxed">
-                        {act.detail}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-semibold text-slate-400 whitespace-nowrap ml-4">
-                    {act.time}
-                  </span>
-                </div>
-              ))
             )}
-          </div>
-        </Card>
 
-        {/* Dynamic UPI Dynamic Settlement Card */}
-        <Card className="lg:col-span-4 bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 text-white flex flex-col justify-between relative overflow-hidden p-6 border-none shadow-xl">
-          <div className="absolute inset-0 bg-grid-pattern-dark opacity-10 pointer-events-none" />
-          
-          <div className="space-y-3 z-10">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[10px] font-bold text-cyan-300">
-              <QrCode className="w-3.5 h-3.5" /> Indian GST Settlements
-            </div>
-            <h3 className="text-xl font-bold font-display tracking-tight leading-tight">
-              Dynamic BHIM UPI QR Code Generator
-            </h3>
-            <p className="text-xs text-indigo-200/80 leading-relaxed">
-              Auto-embed invoices, customer GSTIN, and dynamic outward payable values directly into compliance QR formats. Let customers pay from GPay, PhonePe, or BHIM instantly.
-            </p>
-          </div>
-
-          <div className="mt-6 flex flex-col gap-4 z-10">
-            {isCleared ? (
-              <div className="bg-slate-950/60 border border-slate-800/80 p-5 rounded-2xl text-center flex flex-col items-center justify-center min-h-[172px]">
-                <QrCode className="w-8 h-8 text-indigo-300/60 stroke-[1.5]" />
-                <p className="text-xs font-bold text-slate-200 mt-2">QR Engine Standby</p>
-                <p className="text-[10px] text-indigo-200/60 mt-1 max-w-[180px] mx-auto leading-normal">
-                  Configure merchant credentials in setup settings and raise active invoices to project payment QR targets.
+            {/* Truthful Empty State Overlay when no billing data exists */}
+            {!hasBillingData && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-6">
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 text-slate-400 mb-2">
+                  <TrendingUp className="w-5 h-5 text-slate-400 dark:text-slate-500" />
+                </div>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No billing activity yet</p>
+                <p className="text-xs text-slate-400 mt-0.5 max-w-sm text-center">
+                  Outward billing analytics will dynamically reflect revenue and GST collections once invoices are raised.
                 </p>
               </div>
-            ) : (
-              <div className="bg-white p-3.5 rounded-xl self-center shadow-lg transform rotate-1 hover:rotate-0 transition-transform duration-300">
-                <div className="h-32 w-32 border-2 border-slate-900 rounded-lg flex flex-col items-center justify-between p-1 text-slate-950 font-sans">
-                  {/* Real-looking UPI Logo */}
-                  <span className="text-[9px] font-extrabold tracking-widest text-indigo-600 block">UPI</span>
-                  {/* Simulated dynamic qr */}
-                  <div className="grid grid-cols-4 gap-2 h-20 w-20 opacity-90 mx-auto">
-                    <div className="bg-slate-950 rounded-sm" />
-                    <div className="bg-slate-950 rounded-sm" />
-                    <div className="bg-slate-950 rounded-sm" />
-                    <div className="bg-transparent" />
-                    <div className="bg-transparent" />
-                    <div className="bg-slate-950 rounded-sm" />
-                    <div className="bg-transparent" />
-                    <div className="bg-slate-950 rounded-sm" />
-                    <div className="bg-slate-950 rounded-sm" />
-                    <div className="bg-transparent" />
-                    <div className="bg-slate-950 rounded-sm" />
-                    <div className="bg-slate-950 rounded-sm" />
-                    <div className="bg-slate-950 rounded-sm" />
-                    <div className="bg-slate-950 rounded-sm" />
-                    <div className="bg-slate-950 rounded-sm" />
-                    <div className="bg-slate-950 rounded-sm" />
-                  </div>
-                  <span className="text-[8px] text-slate-400 font-bold leading-none mt-0.5">Scan to pay merchant</span>
+            )}
+          </div>
+
+          {/* Actual Timeline Labels */}
+          <div className="w-full flex justify-between text-[11px] font-bold text-slate-400 z-10 pt-3 border-t border-slate-100 dark:border-slate-800/80 px-2 sm:px-4">
+            {chartData.map((d, idx) => (
+              <span 
+                key={idx} 
+                className={`transition-colors ${hoveredPoint === idx ? "text-indigo-600 dark:text-indigo-400 font-extrabold" : ""}`}
+              >
+                {d.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      {/* Commercial Sales Pipeline & Funnel (Merged Single Section) */}
+      <Card className="border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 md:p-6 space-y-6">
+        {/* Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/60 pb-4">
+          <div>
+            <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white font-display flex items-center gap-2">
+              <BadgePercent className="w-5 h-5 text-indigo-500" /> Commercial Sales & Cash-Flow Pipeline
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              End-to-end progression from quotation estimates to approval, billing realization, and consignment dispatches.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <span className="text-xs font-mono font-bold px-3 py-1 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-full">
+              Real-Time Sync
+            </span>
+          </div>
+        </div>
+
+        {/* Primary View: 4-Step Cash-to-Cash Pipeline Flow Funnel */}
+        <div>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-3">
+            Cash-to-Cash Pipeline Flow Funnel
+          </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {/* Step 1: Quotations Raised */}
+            <div 
+              onClick={() => navigate("quotations")}
+              className="p-4 bg-slate-50/70 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800/80 rounded-xl relative hover:border-violet-300 dark:hover:border-violet-800/60 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black uppercase text-violet-600 dark:text-violet-400 tracking-wider">
+                  Step 1 — Estimate
+                </span>
+                <span className="text-[10px] font-mono text-slate-400">
+                  ₹{totalQuotationsValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                </span>
+              </div>
+              <h5 className="text-sm font-bold text-slate-800 dark:text-slate-100 mt-1.5 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+                Quotations Raised
+              </h5>
+              <div className="flex items-baseline gap-1.5 mt-2">
+                <span className="text-2xl font-black font-mono text-violet-700 dark:text-violet-400">
+                  {totalQuotationsCount}
+                </span>
+                <span className="text-xs text-slate-400 font-medium">
+                  issued ({pendingQuotationsCount} pending)
+                </span>
+              </div>
+            </div>
+
+            {/* Step 2: Customer Approval */}
+            <div 
+              onClick={() => navigate("quotations")}
+              className="p-4 bg-slate-50/70 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800/80 rounded-xl relative hover:border-indigo-300 dark:hover:border-indigo-800/60 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider">
+                  Step 2 — Accepted
+                </span>
+                <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded">
+                  {conversionRate}% win rate
+                </span>
+              </div>
+              <h5 className="text-sm font-bold text-slate-800 dark:text-slate-100 mt-1.5 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                Customer Approval
+              </h5>
+              <div className="flex items-baseline gap-1.5 mt-2">
+                <span className="text-2xl font-black font-mono text-indigo-700 dark:text-indigo-400">
+                  {acceptedQuotationsCount}
+                </span>
+                <span className="text-xs text-slate-400 font-medium">
+                  approved quotes
+                </span>
+              </div>
+            </div>
+
+            {/* Step 3: Invoices Raised */}
+            <div 
+              onClick={() => navigate("invoices")}
+              className="p-4 bg-slate-50/70 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800/80 rounded-xl relative hover:border-cyan-300 dark:hover:border-cyan-800/60 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black uppercase text-cyan-600 dark:text-cyan-400 tracking-wider">
+                  Step 3 — Billed
+                </span>
+                <span className="text-[10px] text-slate-400 font-medium">
+                  {outstandingInvoicesCount} unpaid
+                </span>
+              </div>
+              <h5 className="text-sm font-bold text-slate-800 dark:text-slate-100 mt-1.5 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                Invoices Raised
+              </h5>
+              <div className="flex items-baseline gap-1.5 mt-2">
+                <span className="text-2xl font-black font-mono text-cyan-700 dark:text-cyan-400">
+                  {activeInvoicesCount}
+                </span>
+                <span className="text-xs text-slate-400 font-medium">
+                  active bills
+                </span>
+              </div>
+            </div>
+
+            {/* Step 4: Realized Payments */}
+            <div 
+              onClick={() => navigate("payments")}
+              className="p-4 bg-slate-50/70 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800/80 rounded-xl relative hover:border-emerald-300 dark:hover:border-emerald-800/60 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider">
+                  Step 4 — Cash Flow
+                </span>
+                <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                  {activeInvoicesCount > 0 ? Math.round((paidInvoicesCount / activeInvoicesCount) * 100) : 0}% settled
+                </span>
+              </div>
+              <h5 className="text-sm font-bold text-slate-800 dark:text-slate-100 mt-1.5 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                Realized Payments
+              </h5>
+              <div className="flex items-baseline gap-1.5 mt-2">
+                <span className="text-2xl font-black font-mono text-emerald-700 dark:text-emerald-400">
+                  {paidInvoicesCount}
+                </span>
+                <span className="text-xs text-slate-400 font-medium">
+                  paid (₹{totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })})
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Secondary Operational Stats: Ledger Offsets & Logistics/Dispatches */}
+        <div className="pt-4 border-t border-slate-100 dark:border-slate-800/60 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Ledger Offsets & Notes */}
+          <div 
+            onClick={() => navigate("credit-notes")}
+            className="p-3.5 rounded-xl bg-slate-50/50 dark:bg-slate-950/30 border border-slate-100 dark:border-slate-800/60 flex items-center justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-colors cursor-pointer group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition-transform">
+                <Percent className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                  Ledger Offsets & Notes
+                </span>
+                <div className="flex items-center gap-3 mt-0.5 text-xs font-mono font-bold">
+                  <span className="text-rose-600 dark:text-rose-400">
+                    Cr: ₹{totalCreditNotesValue.toLocaleString('en-IN')} <span className="font-sans font-normal text-[10px] text-slate-400">({creditNotes.length} notes)</span>
+                  </span>
+                  <span className="text-slate-300 dark:text-slate-700">|</span>
+                  <span className="text-teal-600 dark:text-teal-400">
+                    Dr: ₹{totalDebitNotesValue.toLocaleString('en-IN')} <span className="font-sans font-normal text-[10px] text-slate-400">({debitNotes.length} notes)</span>
+                  </span>
                 </div>
               </div>
-            )}
-
-            <button
-              onClick={() => navigate("settings")}
-              className="w-full py-2.5 bg-white hover:bg-slate-50 text-indigo-900 hover:text-indigo-950 font-extrabold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
-            >
-              Verify Merchant Wallet <ArrowUpRight className="w-3.5 h-3.5" />
-            </button>
+            </div>
+            <span className="text-[11px] text-slate-400 hidden sm:inline font-medium">
+              Tax adjustments
+            </span>
           </div>
-        </Card>
-      </div>
+
+          {/* Logistics & Dispatches */}
+          <div 
+            onClick={() => navigate("delivery-challans")}
+            className="p-3.5 rounded-xl bg-slate-50/50 dark:bg-slate-950/30 border border-slate-100 dark:border-slate-800/60 flex items-center justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-colors cursor-pointer group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-cyan-50 dark:bg-cyan-950/40 text-cyan-600 dark:text-cyan-400 group-hover:scale-105 transition-transform">
+                <Truck className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                  Logistics & Dispatches
+                </span>
+                <div className="flex items-center gap-2 mt-0.5 text-xs font-mono font-bold text-slate-800 dark:text-slate-200">
+                  <span>{deliveredChallansCount} / {totalChallansCount} Delivered</span>
+                  <span className="text-slate-300 dark:text-slate-700">|</span>
+                  <span className="text-amber-600 dark:text-amber-400 font-sans font-medium text-[11px]">{dispatchedChallansCount} in transit</span>
+                  <span className="text-slate-300 dark:text-slate-700">|</span>
+                  <span className="text-slate-400 font-sans font-medium text-[11px]">{Math.max(0, totalChallansCount - dispatchedChallansCount - deliveredChallansCount)} drafts</span>
+                </div>
+              </div>
+            </div>
+            <span className="text-[11px] text-slate-400 hidden sm:inline font-medium">
+              Consignments
+            </span>
+          </div>
+        </div>
+      </Card>
+
+      {/* Recent Activity Audit Trail (Clean, Compact Empty-State) */}
+      <Card className="border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 md:p-6">
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800/60">
+          <h3 className="font-bold text-slate-900 dark:text-white font-display flex items-center gap-2 text-base md:text-lg">
+            <Activity className="w-4.5 h-4.5 text-indigo-500" /> Recent Activity Audit Trail
+          </h3>
+          <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Live logs</span>
+        </div>
+
+        {activities.length === 0 ? (
+          <div className="py-4 px-4 text-center rounded-xl bg-slate-50/60 dark:bg-slate-950/30 border border-dashed border-slate-200 dark:border-slate-800/80 flex items-center justify-center gap-2.5">
+            <Activity className="w-4 h-4 text-slate-400 shrink-0" />
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              No recent audit activity recorded yet. Invoices, customer registrations, and payments will appear here in real-time.
+            </span>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {activities.map((act) => (
+              <div 
+                key={act.id} 
+                className="flex items-start justify-between p-3 rounded-xl bg-slate-50/50 dark:bg-slate-950/20 hover:bg-slate-50 dark:hover:bg-slate-950/40 transition-colors border border-transparent hover:border-slate-200/40 dark:hover:border-slate-800/40"
+              >
+                <div className="flex gap-3">
+                  <div className="mt-1">
+                    <span className="relative flex h-2 w-2">
+                      <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                        act.status === "danger" ? "bg-rose-400" : act.status === "warning" ? "bg-amber-400" : "bg-emerald-400"
+                      }`} />
+                      <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                        act.status === "danger" ? "bg-rose-500" : act.status === "warning" ? "bg-amber-500" : "bg-emerald-500"
+                      }`} />
+                    </span>
+                  </div>
+                  <div>
+                    <h5 className="text-sm font-bold text-slate-800 dark:text-slate-200 font-display">
+                      {act.event}
+                    </h5>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-sans leading-relaxed">
+                      {act.detail}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-semibold text-slate-400 whitespace-nowrap ml-4">
+                  {act.time}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

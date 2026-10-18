@@ -81,9 +81,9 @@ export function ProfileView() {
   };
 
   return (
-    <div className="space-y-6 font-sans max-w-4xl">
+    <div className="space-y-4 md:space-y-6 font-sans max-w-4xl">
       <div>
-        <h1 className="text-2xl font-extrabold font-display text-slate-900 dark:text-white flex items-center gap-2">
+        <h1 className="text-xl md:text-2xl font-extrabold font-display text-slate-900 dark:text-white flex items-center gap-2">
           <User className="w-6 h-6 text-primary-500" /> My Account & Profile
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">

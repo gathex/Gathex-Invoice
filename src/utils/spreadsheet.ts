@@ -99,7 +99,7 @@ export function downloadGSTR1CSV(invoices: any[], businessGstin: string) {
 /**
  * Downloads a general Invoice Ledger sheet
  */
-export function downloadLedgerCSV(invoices: any[], businessName: string) {
+export function downloadLedgerCSV(invoices: any[], businessName: string, businessGstin: string = "") {
   const headers = [
     "Invoice Number",
     "Customer Name",
@@ -121,7 +121,7 @@ export function downloadLedgerCSV(invoices: any[], businessName: string) {
 
   invoices.forEach((inv) => {
     // Recalculate local math
-    const math = calculateInvoiceMathLocal(inv, "27AAECG8492C1Z2");
+    const math = calculateInvoiceMathLocal(inv, businessGstin);
 
     const row = [
       inv.invoiceNumber || "",
@@ -155,7 +155,7 @@ export function downloadLedgerCSV(invoices: any[], businessName: string) {
 }
 
 // Local helper to recalculate math for any invoice without depending on state
-function calculateInvoiceMathLocal(inv: any, businessGstin: string) {
+function calculateInvoiceMathLocal(inv: any, businessGstin: string = "") {
   let subTotal = 0;
   let totalDiscount = Number(inv.discountGlobal) || 0;
   let totalTaxableAmount = 0;
@@ -163,13 +163,13 @@ function calculateInvoiceMathLocal(inv: any, businessGstin: string) {
   let totalSgst = 0;
   let totalIgst = 0;
 
-  const bizGstin = businessGstin || "27AAECG8492C1Z2";
-  const bizStateCode = bizGstin.substring(0, 2);
+  const bizGstin = businessGstin || "";
+  const bizStateCode = bizGstin.length >= 2 ? bizGstin.substring(0, 2) : "";
   
-  const placeOfSupply = inv.placeOfSupply || "Maharashtra (27)";
+  const placeOfSupply = inv.placeOfSupply || "";
   const supplyStateMatch = placeOfSupply.match(/\((\d{2})\)/);
-  const supplyStateCode = supplyStateMatch ? supplyStateMatch[1] : bizStateCode;
-  const isIntrastate = bizStateCode === supplyStateCode;
+  const supplyStateCode = supplyStateMatch ? supplyStateMatch[1] : "";
+  const isIntrastate = bizStateCode && supplyStateCode ? bizStateCode === supplyStateCode : false;
 
   const items = inv.items || [];
   items.forEach((item: any) => {

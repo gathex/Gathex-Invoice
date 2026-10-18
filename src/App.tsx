@@ -50,9 +50,9 @@ function AppContent() {
       if (isAuthRoute || isLandingRoute) {
         // Direct authenticated users to dashboard if trying to view login or landing pages
         navigate("dashboard");
-      } else if (currentRoute === "admin" && !isAdmin) {
-        // Direct non-admins away from /admin
-        console.warn("Access denied to /admin route for non-admin user.");
+      } else if ((currentRoute === "admin" || currentRoute === "qa-testing") && !isAdmin) {
+        // Direct non-admins away from /admin and /qa-testing
+        console.warn(`Access denied to /${currentRoute} route for non-admin user.`);
         navigate("dashboard");
       }
     }
@@ -88,7 +88,7 @@ function AppContent() {
         <motion.div key="app-dashboard-layout" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
           <DashboardLayout>
             {currentRoute === "dashboard" && <Dashboard />}
-            {currentRoute === "admin" && <AdminPortalView />}
+            {currentRoute === "admin" && isAdmin && <AdminPortalView />}
             {currentRoute === "businesses" && <BusinessesView />}
             {currentRoute === "quotations" && <SalesDocumentsView docType="quotation" />}
             {currentRoute === "proforma-invoices" && <SalesDocumentsView docType="proforma_invoice" />}
@@ -104,7 +104,7 @@ function AppContent() {
             {currentRoute === "reminders" && <RemindersView />}
             {currentRoute === "expenses" && <ExpensesView />}
             {currentRoute === "reports" && <ReportsView />}
-            {currentRoute === "qa-testing" && <QATestingView />}
+            {currentRoute === "qa-testing" && isAdmin && <QATestingView />}
             {currentRoute === "settings" && <SettingsView />}
             {currentRoute === "profile" && <ProfileView />}
           </DashboardLayout>

@@ -10,11 +10,11 @@ import { Dialog } from "../ui/Dialog";
 import { useToast } from "../ui/Toast";
 import { useAuth } from "../../context/AuthContext";
 import { businessService } from "../../services/businessService";
+import { toTitleCase } from "../../utils/formatters";
 import { 
   Building2, 
   Search, 
   Plus, 
-  Check, 
   Trash2, 
   Edit, 
   Archive, 
@@ -22,11 +22,8 @@ import {
   Globe, 
   Phone, 
   Mail, 
-  ShieldCheck, 
   MapPin, 
-  LayoutDashboard,
-  AlertTriangle,
-  FolderSync
+  AlertTriangle 
 } from "lucide-react";
 
 export function BusinessesView() {
@@ -68,7 +65,7 @@ export function BusinessesView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [archiveFilter, setArchiveFilter] = useState<"all" | "active" | "archived">("active");
 
-  // Real-time Firestore sync for Businesses
+  // Real-time sync for Businesses
   useEffect(() => {
     if (!user) return;
 
@@ -150,8 +147,8 @@ export function BusinessesView() {
       website: website.trim() || undefined,
       address: {
         street: street.trim(),
-        city: city.trim(),
-        state: state.trim(),
+        city: toTitleCase(city.trim()),
+        state: toTitleCase(state.trim()),
         country: country.trim(),
         postalCode: pincode.trim()
       }
@@ -161,7 +158,7 @@ export function BusinessesView() {
     try {
       if (isEditing) {
         await businessService.updateBusiness(editingId, payload);
-        toast.success("Business Updated", `Successfully updated ${name} profile.`);
+        toast.success("Workspace Updated", `Saved changes to ${name}.`);
         
         // If this is the active business, update active business state in auth
         if (activeBusiness && activeBusiness.id === editingId) {
@@ -175,7 +172,7 @@ export function BusinessesView() {
         }
       } else {
         const newId = await businessService.createBusiness(user.uid, payload);
-        toast.success("Business Registered", `${name} is ready for invoicing.`);
+        toast.success("Workspace Added", `${name} is ready.`);
         
         // If no active business, set this one as active automatically
         if (!activeBusiness || businesses.length === 0) {
@@ -190,7 +187,11 @@ export function BusinessesView() {
       }
       setIsModalOpen(false);
     } catch (err: any) {
-      toast.error("Operation Failed", err.message || "Could not save business details.");
+      if (err?.message?.includes('SUBSCRIPTION_LIMIT_EXCEEDED')) {
+        toast.error("Plan Limit Reached", "You've reached your maximum workspace limit for your current plan. Upgrade your plan to create additional workspaces.");
+      } else {
+        toast.error("Error", err.message || "Could not save workspace details.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -200,11 +201,11 @@ export function BusinessesView() {
     try {
       await businessService.toggleArchiveBusiness(biz.id, !!biz.isArchived);
       toast.info(
-        biz.isArchived ? "Business Restored" : "Business Archived",
-        `${biz.name} has been ${biz.isArchived ? "restored to active listing" : "moved to archives"}.`
+        biz.isArchived ? "Workspace Restored" : "Workspace Archived",
+        biz.isArchived ? `${biz.name} restored.` : `${biz.name} moved to archives.`
       );
     } catch (err: any) {
-      toast.error("Error", err.message || "Failed to alter business archive status.");
+      toast.error("Error", err.message || "Failed to update workspace archive status.");
     }
   };
 
@@ -218,7 +219,7 @@ export function BusinessesView() {
     if (!businessToDelete) return;
     try {
       await businessService.deleteBusiness(businessToDelete.id);
-      toast.success("Business Permanently Removed", `${businessToDelete.name} has been deleted.`);
+      toast.success("Workspace Deleted", `${businessToDelete.name} has been removed.`);
       
       // If deleted business was active, set active to another or null
       if (activeBusiness && activeBusiness.id === businessToDelete.id) {
@@ -232,17 +233,17 @@ export function BusinessesView() {
       setIsConfirmDeleteOpen(false);
       setBusinessToDelete(null);
     } catch (err: any) {
-      toast.error("Delete Failed", err.message || "Failed to delete business.");
+      toast.error("Delete Failed", err.message || "Failed to delete workspace.");
     }
   };
 
   const handleSwitchActive = (biz: any) => {
     if (activeBusiness?.id === biz.id) {
-      toast.info("Already Active", `${biz.name} is already your active workspace.`);
+      toast.info("Already Active", `${biz.name} is currently selected.`);
       return;
     }
     setActiveBusiness(biz);
-    toast.success("Workspace Switched", `Switched active ledger target to ${biz.name}.`);
+    toast.success("Workspace Switched", `Switched to ${biz.name}.`);
   };
 
   // Filter businesses
@@ -256,19 +257,19 @@ export function BusinessesView() {
   });
 
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-4 md:space-y-6 font-sans">
       {/* Top Title and Actions */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold font-display text-slate-900 dark:text-white flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-primary-500" /> Multi-Business Workspace
+          <h1 className="text-xl md:text-2xl font-extrabold font-display text-slate-900 dark:text-white flex items-center gap-2">
+            <Building2 className="w-6 h-6 text-primary-500" /> Workspaces
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Provision, manage, and switch billing records across multiple corporate entities from a single terminal
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Manage and switch between all your workspaces in one place.
           </p>
         </div>
         <Button onClick={openCreateModal} className="flex items-center gap-1.5 self-start cursor-pointer">
-          <Plus className="w-4 h-4" /> Add New Business
+          <Plus className="w-4 h-4" /> Add Workspace
         </Button>
       </div>
 
@@ -276,7 +277,7 @@ export function BusinessesView() {
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200/60 dark:border-slate-800">
         <div className="relative w-full sm:w-80">
           <Input
-            placeholder="Search business name or GSTIN..."
+            placeholder="Search workspace name or GSTIN..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             leftIcon={<Search className="w-4 h-4 text-slate-400" />}
@@ -293,7 +294,7 @@ export function BusinessesView() {
                 : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-50"
             }`}
           >
-            Active Workspaces
+            Active
           </button>
           <button
             onClick={() => setArchiveFilter("archived")}
@@ -313,7 +314,7 @@ export function BusinessesView() {
                 : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-50"
             }`}
           >
-            All List
+            All
           </button>
         </div>
       </div>
@@ -328,15 +329,15 @@ export function BusinessesView() {
       ) : filtered.length === 0 ? (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800 p-12 text-center max-w-xl mx-auto">
           <Building2 className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto stroke-[1.5]" />
-          <h3 className="font-bold font-display text-slate-800 dark:text-slate-200 mt-4">No businesses registered</h3>
+          <h3 className="font-bold font-display text-slate-800 dark:text-slate-200 mt-4">No workspaces found</h3>
           <p className="text-xs text-slate-400 mt-2">
             {archiveFilter === "archived" 
-              ? "No archived business workspaces found matching your query." 
-              : "Register your first business workspace to unlock professional GST invoicing, catalog mappings, and accounts tracking."}
+              ? "No archived workspaces match your search." 
+              : "Add your first workspace to start creating invoices and managing clients."}
           </p>
           {archiveFilter !== "archived" && (
             <Button onClick={openCreateModal} className="mt-6 cursor-pointer">
-              Register First Business
+              Add Workspace
             </Button>
           )}
         </div>
@@ -344,6 +345,9 @@ export function BusinessesView() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filtered.map((biz, index) => {
             const isActive = activeBusiness?.id === biz.id;
+            const businessTypeLabel = toTitleCase(biz.businessType) || "Corporation";
+            const cityLabel = toTitleCase(biz.address?.city) || "India";
+
             return (
               <motion.div
                 key={biz.id}
@@ -358,104 +362,124 @@ export function BusinessesView() {
                       : "border-slate-200/60 dark:border-slate-800/80 hover:border-slate-300 bg-white dark:bg-slate-900"
                   }`}
                 >
-                <div>
-                  <div className="flex items-start justify-between">
-                    <div className="flex gap-3.5">
-                      <div className={`p-3 rounded-xl ${isActive ? "bg-primary-100 dark:bg-primary-950/80 text-primary-600 dark:text-primary-400" : "bg-slate-50 dark:bg-slate-950 text-slate-500"}`}>
-                        <Building2 className="w-6 h-6" />
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex gap-3.5">
+                        <div className={`p-3 rounded-xl ${isActive ? "bg-primary-100 dark:bg-primary-950/80 text-primary-600 dark:text-primary-400" : "bg-slate-50 dark:bg-slate-950 text-slate-500"}`}>
+                          <Building2 className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display">
+                              {biz.name}
+                            </h3>
+                            {isActive && (
+                              <Badge variant="primary" className="text-[10px] font-bold py-0.5 px-2">
+                                Active
+                              </Badge>
+                            )}
+                            {biz.isArchived && (
+                              <Badge variant="neutral" className="text-[10px] font-semibold py-0.5 px-2">
+                                Archived
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-400 mt-0.5 font-sans">
+                            {businessTypeLabel} &bull; {cityLabel}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Registered Details Block with increased vertical spacing and consistent neutral status styling */}
+                    <div className="grid grid-cols-2 gap-y-4 gap-x-4 my-5 py-4 border-t border-slate-100 dark:border-slate-800/60 text-xs">
+                      <div>
+                        <span className="text-slate-400 dark:text-slate-500 uppercase text-[10px] font-sans font-semibold tracking-wider block mb-1">
+                          GSTIN
+                        </span>
+                        {biz.gstin ? (
+                          <span className="text-emerald-600 dark:text-emerald-400 font-mono font-semibold truncate block">
+                            {biz.gstin}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 dark:text-slate-500 font-sans font-normal truncate block">
+                            Not registered
+                          </span>
+                        )}
                       </div>
                       <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display">
-                            {biz.name}
-                          </h3>
-                          {isActive && (
-                            <Badge variant="primary" className="text-[10px] font-bold py-0.5 px-2">
-                              Active Workspace
-                            </Badge>
-                          )}
-                          {biz.isArchived && (
-                            <Badge variant="neutral" className="text-[10px] font-semibold py-0.5 px-2">
-                              Archived
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-xs text-slate-400 mt-0.5 font-sans">
-                          {biz.businessType || "Corporation"} &bull; {biz.address?.city || "India"}
-                        </p>
+                        <span className="text-slate-400 dark:text-slate-500 uppercase text-[10px] font-sans font-semibold tracking-wider block mb-1">
+                          PAN
+                        </span>
+                        {biz.pan ? (
+                          <span className="text-slate-700 dark:text-slate-200 font-mono font-semibold truncate block">
+                            {biz.pan}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 dark:text-slate-500 font-sans font-normal truncate block">
+                            N/A
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="text-slate-400 dark:text-slate-500 uppercase text-[10px] font-sans font-semibold tracking-wider block mb-1">
+                          Email
+                        </span>
+                        <span className={biz.email ? "text-slate-700 dark:text-slate-200 truncate block font-medium" : "text-slate-400 dark:text-slate-500 truncate block font-normal"}>
+                          {biz.email || "N/A"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 dark:text-slate-500 uppercase text-[10px] font-sans font-semibold tracking-wider block mb-1">
+                          Phone
+                        </span>
+                        <span className={biz.phone ? "text-slate-700 dark:text-slate-200 truncate block font-medium" : "text-slate-400 dark:text-slate-500 truncate block font-normal"}>
+                          {biz.phone || "N/A"}
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Registered Details Block */}
-                  <div className="grid grid-cols-2 gap-y-3 gap-x-2 my-5 pt-4 border-t border-slate-100 dark:border-slate-800/40 text-[11px] font-semibold font-mono">
-                    <div>
-                      <span className="text-black dark:text-slate-400 uppercase text-[9px] block tracking-wide">GSTIN</span>
-                      <span className="text-emerald-600 dark:text-emerald-400 truncate block">
-                        {biz.gstin || "Not Registered"}
-                      </span>
+                  {/* Card footer actions */}
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800/60 gap-2 mt-2 flex-wrap">
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={() => openEditModal(biz)}
+                        className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                        title="Edit workspace"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleToggleArchive(biz)}
+                        className={`p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 transition-colors cursor-pointer ${
+                          biz.isArchived ? "text-amber-500 hover:text-amber-600" : "hover:text-slate-800"
+                        }`}
+                        title={biz.isArchived ? "Restore workspace" : "Archive workspace"}
+                      >
+                        <Archive className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleTriggerDelete(biz)}
+                        className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
+                        title="Delete workspace"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                    <div>
-                      <span className="text-black dark:text-slate-400 uppercase text-[9px] block tracking-wide">PAN</span>
-                      <span className="text-indigo-600 dark:text-indigo-400 truncate block">
-                        {biz.pan || "N/A"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 uppercase text-[9px] block tracking-wide">Email</span>
-                      <span className="text-slate-600 dark:text-slate-300 truncate block">
-                        {biz.email}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 uppercase text-[9px] block tracking-wide">Phone</span>
-                      <span className="text-slate-600 dark:text-slate-300 truncate block">
-                        {biz.phone || "N/A"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Card footer actions */}
-                <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800/40 gap-2 mt-4 flex-wrap">
-                  <div className="flex gap-1.5">
-                    <button
-                      onClick={() => openEditModal(biz)}
-                      className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer"
-                      title="Edit Business Profile"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleToggleArchive(biz)}
-                      className={`p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 transition-colors cursor-pointer ${
-                        biz.isArchived ? "text-amber-500 hover:text-amber-600" : "hover:text-slate-800"
-                      }`}
-                      title={biz.isArchived ? "Restore to Active" : "Archive Workspace"}
-                    >
-                      <Archive className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleTriggerDelete(biz)}
-                      className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
-                      title="Permanently Remove"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {!isActive && !biz.isArchived && (
+                      <button
+                        onClick={() => handleSwitchActive(biz)}
+                        className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-sm cursor-pointer active:scale-95"
+                      >
+                        Switch <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
-
-                  {!isActive && !biz.isArchived && (
-                    <button
-                      onClick={() => handleSwitchActive(biz)}
-                      className="flex items-center gap-1 bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl transition-all shadow-md shadow-primary-600/10 cursor-pointer active:scale-95"
-                    >
-                      Switch Workspace <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              </Card>
-            </motion.div>
-          );
+                </Card>
+              </motion.div>
+            );
           })}
         </div>
       )}
@@ -464,20 +488,20 @@ export function BusinessesView() {
       <Dialog
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={isEditing ? "Edit Business Workspace" : "Register Corporate Workspace"}
+        title={isEditing ? "Edit Workspace" : "Add Workspace"}
         size="lg"
       >
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              label="Business/Trade Name *"
+              label="Workspace Name *"
               placeholder="e.g. Acme Technologies"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
             />
             <Input
-              label="Legal Entity Name (Printed on Invoices) *"
+              label="Legal Name (Printed on Invoices) *"
               placeholder="e.g. Acme Technologies Private Limited"
               value={legalName}
               onChange={(e) => setLegalName(e.target.value)}
@@ -500,14 +524,14 @@ export function BusinessesView() {
               ]}
             />
             <Input
-              label="GSTIN (15-digit)"
+              label="GSTIN (Optional)"
               placeholder="e.g. 27AAPCA1234A1Z5"
               value={gstin}
               onChange={(e) => setGstin(e.target.value)}
               className="font-mono uppercase"
             />
             <Input
-              label="PAN Number (10-digit)"
+              label="PAN (Optional)"
               placeholder="e.g. AAPCA1234A"
               value={pan}
               onChange={(e) => setPan(e.target.value)}
@@ -518,7 +542,7 @@ export function BusinessesView() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
-              label="Business Email *"
+              label="Email *"
               type="email"
               placeholder="support@company.com"
               value={email}
@@ -527,7 +551,7 @@ export function BusinessesView() {
               leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
             />
             <Input
-              label="Business Phone *"
+              label="Phone *"
               placeholder="+91 98765 43210"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -535,7 +559,7 @@ export function BusinessesView() {
               leftIcon={<Phone className="w-4 h-4 text-slate-400" />}
             />
             <Input
-              label="Website Domain"
+              label="Website (Optional)"
               placeholder="https://company.com"
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
@@ -545,7 +569,7 @@ export function BusinessesView() {
 
           {/* MSME registration ID */}
           <Input
-            label="Udyam MSME Registration Number (Optional)"
+            label="MSME / Udyam Number (Optional)"
             placeholder="UDYAM-XX-00-0000000"
             value={msmeNumber}
             onChange={(e) => setMsmeNumber(e.target.value)}
@@ -554,10 +578,10 @@ export function BusinessesView() {
 
           <div className="space-y-3 pt-2">
             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-primary-500" /> Registered Headquarters Address
+              <MapPin className="w-3.5 h-3.5 text-primary-500" /> Address
             </h4>
             <Input
-              label="Street Address / Room / Tower"
+              label="Street Address"
               placeholder="e.g. 402 Supreme Chambers, Link Road"
               value={street}
               onChange={(e) => setStreet(e.target.value)}
@@ -602,7 +626,7 @@ export function BusinessesView() {
               Cancel
             </Button>
             <Button variant="primary" type="submit" loading={isSubmitting} disabled={isSubmitting}>
-              {isEditing ? "Save Changes" : "Register Business"}
+              {isEditing ? "Save Changes" : "Add Workspace"}
             </Button>
           </div>
         </form>
@@ -612,24 +636,24 @@ export function BusinessesView() {
       <Dialog
         isOpen={isConfirmDeleteOpen}
         onClose={() => setIsConfirmDeleteOpen(false)}
-        title="Permanently Delete Workspace"
+        title="Delete Workspace"
         size="sm"
       >
         <div className="space-y-4 py-2 text-center sm:text-left">
           <div className="flex items-center justify-center sm:justify-start gap-3 text-rose-500">
             <AlertTriangle className="w-10 h-10 animate-bounce" />
             <div>
-              <h4 className="font-bold font-display">Destructive Action</h4>
-              <p className="text-xs text-slate-400">This operation cannot be reversed.</p>
+              <h4 className="font-bold font-display">Delete Workspace</h4>
+              <p className="text-xs text-slate-400">This cannot be undone.</p>
             </div>
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-300">
-            Are you absolutely sure you want to delete <strong className="text-slate-800 dark:text-white">{businessToDelete?.name}</strong>? 
-            This will permanently erase all associated catalogs, payment configurations, and invoices from our nodes.
+            Are you sure you want to delete <strong className="text-slate-800 dark:text-white">{businessToDelete?.name}</strong>? 
+            This will permanently remove this workspace and its invoices, customers, and products.
           </p>
           <div className="mt-4">
             <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Please type <strong>{businessToDelete?.name}</strong> to confirm:
+              Type <strong>{businessToDelete?.name}</strong> to confirm:
             </label>
             <Input
               placeholder={businessToDelete?.name}
@@ -647,7 +671,7 @@ export function BusinessesView() {
               onClick={handleConfirmDelete}
               disabled={deleteConfirmationText !== businessToDelete?.name}
             >
-              Confirm Permanent Delete
+              Delete Workspace
             </Button>
           </div>
         </div>

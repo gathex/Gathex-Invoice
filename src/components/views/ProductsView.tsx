@@ -247,32 +247,34 @@ export function ProductsView() {
   }, [searchQuery, typeFilter, gstFilter]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold font-display text-slate-900 dark:text-white">Inventory & Tax Catalog</h1>
-          <p className="text-sm text-slate-500">Configure cataloged goods and billing services with native HSN/SAC codes and standard GST slabs.</p>
+          <h1 className="text-xl md:text-2xl font-extrabold font-display text-slate-900 dark:text-white">Inventory & Tax Catalog</h1>
+          <p className="text-xs md:text-sm text-slate-500 mt-0.5">Configure cataloged goods and billing services with native HSN/SAC codes and standard GST slabs.</p>
         </div>
         
-        <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => {
-          setIsEditing(false);
-          setEditingId("");
-          setType("product");
-          setName("");
-          setSku("");
-          setHsnSac("");
-          setDescription("");
-          setPrice("");
-          setUnit("Pcs");
-          setGstRate("18");
-          setCessRate("0");
-          setQuantityInStock("0");
-          setLowStockThreshold("10");
-          setIsModalOpen(true);
-        }}>
-          Add Item
-        </Button>
+        <div className="hidden sm:block">
+          <Button variant="primary" size="sm" icon={<Plus className="w-4 h-4" />} onClick={() => {
+            setIsEditing(false);
+            setEditingId("");
+            setType("product");
+            setName("");
+            setSku("");
+            setHsnSac("");
+            setDescription("");
+            setPrice("");
+            setUnit("Pcs");
+            setGstRate("18");
+            setCessRate("0");
+            setQuantityInStock("0");
+            setLowStockThreshold("10");
+            setIsModalOpen(true);
+          }}>
+            Add Item
+          </Button>
+        </div>
       </div>
 
       {/* Interactive Filter Panel */}
@@ -622,6 +624,29 @@ export function ProductsView() {
           </div>
         </div>
       </Dialog>
+
+      {/* Mobile Sticky Bottom Bar */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 p-3 flex gap-2">
+        <Button variant="primary" size="md" icon={<Plus className="w-4 h-4" />} onClick={() => {
+          setIsEditing(false);
+          setEditingId("");
+          setType("product");
+          setName("");
+          setSku("");
+          setHsnSac("");
+          setDescription("");
+          setPrice("");
+          setUnit("Pcs");
+          setGstRate("18");
+          setCessRate("0");
+          setQuantityInStock("0");
+          setLowStockThreshold("10");
+          setIsModalOpen(true);
+        }} className="flex-1">
+          Add Item
+        </Button>
+      </div>
+      <div className="sm:hidden h-20" />
     </div>
   );
 }

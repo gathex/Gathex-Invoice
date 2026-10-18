@@ -8,6 +8,7 @@ import { Input } from "../../ui/Input";
 import { Button } from "../../ui/Button";
 import { Badge } from "../../ui/Badge";
 import { supabase } from "../../../supabase/config";
+import { toTitleCase } from "../../../utils/formatters";
 import { 
   Search, 
   User, 
@@ -549,7 +550,7 @@ export function AdminUsersView() {
                             <p className="text-[11px] text-slate-400">{b.email} • {b.phone}</p>
                           </div>
                           <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-[10px] text-slate-500">
-                            {b.address?.city || "India"}
+                            {toTitleCase(b.address?.city) || "India"}
                           </span>
                         </div>
                       ))}

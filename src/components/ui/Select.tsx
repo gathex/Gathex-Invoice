@@ -31,7 +31,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         <select
           id={uniqueId}
           ref={ref}
-          className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border ${
+          className={`w-full px-4 py-2.5 min-h-[44px] sm:min-h-0 bg-white dark:bg-slate-900 border ${
             error 
               ? "border-rose-500 focus:ring-rose-500/10 focus:border-rose-500" 
               : "border-slate-200 focus:ring-primary-500/10 focus:border-primary-500 dark:border-slate-800"

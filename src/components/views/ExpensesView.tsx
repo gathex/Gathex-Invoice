@@ -52,10 +52,10 @@ export function ExpensesView() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold font-display text-slate-900 dark:text-white">Business Outflow Ledger</h1>
+          <h1 className="text-xl md:text-2xl font-extrabold font-display text-slate-900 dark:text-white">Business Outflow Ledger</h1>
           <p className="text-sm text-slate-500">Record supplier purchases, overhead office expenses, and claim input tax credits (ITC)</p>
         </div>
         

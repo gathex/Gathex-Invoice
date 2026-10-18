@@ -54,6 +54,7 @@ import {
   DocumentActivity 
 } from "../../types";
 import { salesDocumentService } from "../../services/salesDocumentService";
+import { toTitleCase } from "../../utils/formatters";
 
 
 export function CustomersView() {
@@ -511,31 +512,33 @@ export function CustomersView() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold font-display text-slate-900 dark:text-white">Customers Ledger</h1>
-          <p className="text-sm text-slate-500">Manage tax registered (B2B) and unregistered (B2C) retail clients with live metric auditing.</p>
+          <h1 className="text-xl md:text-2xl font-extrabold font-display text-slate-900 dark:text-white">Customers Ledger</h1>
+          <p className="text-xs md:text-sm text-slate-500 mt-0.5">Manage tax registered (B2B) and unregistered (B2C) retail clients with live metric auditing.</p>
         </div>
         
-        <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => {
-          setIsEditing(false);
-          setEditingId("");
-          setGstinInput("");
-          setClientName("");
-          setCompanyName("");
-          setClientEmail("");
-          setClientPhone("");
-          setStreet("");
-          setCity("");
-          setState("");
-          setPostalCode("");
-          setCountry("India");
-          setIsModalOpen(true);
-        }}>
-          Register New Customer
-        </Button>
+        <div className="hidden sm:block">
+          <Button variant="primary" size="sm" icon={<Plus className="w-4 h-4" />} onClick={() => {
+            setIsEditing(false);
+            setEditingId("");
+            setGstinInput("");
+            setClientName("");
+            setCompanyName("");
+            setClientEmail("");
+            setClientPhone("");
+            setStreet("");
+            setCity("");
+            setState("");
+            setPostalCode("");
+            setCountry("India");
+            setIsModalOpen(true);
+          }}>
+            Register New Customer
+          </Button>
+        </div>
       </div>
 
       {/* Tabs & Search controls */}
@@ -587,7 +590,7 @@ export function CustomersView() {
 
       {/* Loading Skeletons */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 lg:gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i} className="space-y-4">
               <div className="flex justify-between items-center">
@@ -619,7 +622,7 @@ export function CustomersView() {
       ) : (
         <>
           {/* Customers Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 lg:gap-6">
             {paginatedCustomers.map((cust, index) => {
               const stats = getCustomerMetrics(cust.id);
               return (
@@ -687,7 +690,9 @@ export function CustomersView() {
                       </div>
                       <div className="flex items-center gap-2">
                         <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="truncate">{cust.billingAddress?.city}, {cust.billingAddress?.state}</span>
+                        <span className="truncate">
+                          {[toTitleCase(cust.billingAddress?.city), toTitleCase(cust.billingAddress?.state)].filter(Boolean).join(", ") || "India"}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1248,6 +1253,28 @@ export function CustomersView() {
           </div>
         </div>
       </Dialog>
+
+      {/* Mobile Sticky Bottom Bar */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 p-3 flex gap-2">
+        <Button variant="primary" size="md" icon={<Plus className="w-4 h-4" />} onClick={() => {
+          setIsEditing(false);
+          setEditingId("");
+          setGstinInput("");
+          setClientName("");
+          setCompanyName("");
+          setClientEmail("");
+          setClientPhone("");
+          setStreet("");
+          setCity("");
+          setState("");
+          setPostalCode("");
+          setCountry("India");
+          setIsModalOpen(true);
+        }} className="flex-1">
+          Register Customer
+        </Button>
+      </div>
+      <div className="sm:hidden h-20" />
     </div>
   );
 }

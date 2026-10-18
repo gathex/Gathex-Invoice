@@ -1118,17 +1118,19 @@ export function SettingsView() {
                                 <h4 className={`text-xs font-bold leading-tight text-slate-900 ${
                                   brandingSettings.invoiceTheme === "classic" ? "font-serif" : "font-sans font-extrabold"
                                 }`}>
-                                  {bizName || "GATHEX Tech Pvt Ltd"}
+                                  {bizName || activeBusiness?.name || "Your Business Name"}
                                 </h4>
                                 <span className="text-[8px] text-slate-400 uppercase tracking-widest block font-sans">
-                                  {legalName || "GATHEX SYSTEMS"}
+                                  {legalName || activeBusiness?.legalName || ""}
                                 </span>
                               </div>
                             </div>
 
                             <div className="text-[9px] text-slate-400 font-sans space-y-0.5 leading-normal">
-                              <p className="font-medium text-slate-600">{street || "402, GATHEX Incline Towers"}, {city || "Mumbai"}</p>
-                              <p className="font-semibold" style={{ color: (brandingSettings.invoiceAccentColor || "#4f46e5") }}>GSTIN: {bizGstin || "27AAECG8492C1Z2"}</p>
+                              <p className="font-medium text-slate-600">{[street || activeBusiness?.address?.street, city || activeBusiness?.address?.city].filter(Boolean).join(", ")}</p>
+                              {(bizGstin || activeBusiness?.gstin) && (
+                                <p className="font-semibold" style={{ color: (brandingSettings.invoiceAccentColor || "#4f46e5") }}>GSTIN: {bizGstin || activeBusiness?.gstin}</p>
+                              )}
                             </div>
                           </div>
 

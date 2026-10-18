@@ -18,7 +18,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label 
             htmlFor={uniqueId}
-            className="text-xs font-semibold text-slate-700 dark:text-slate-300 font-display tracking-tight"
+            className="text-[11px] font-bold text-[#A3AABF] uppercase tracking-wider font-display"
           >
             {label}
           </label>
@@ -32,11 +32,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             id={uniqueId}
             ref={ref}
-            className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border ${
+            className={`w-full px-4 py-2.5 min-h-[44px] sm:min-h-0 bg-white dark:bg-slate-900 border ${
               error 
                 ? "border-rose-500 focus:ring-rose-500/10 focus:border-rose-500" 
                 : "border-slate-200 focus:ring-primary-500/10 focus:border-primary-500 dark:border-slate-800"
-            } rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 transition-all focus:outline-none focus:ring-4 ${
+            } rounded-xl text-sm text-slate-900 dark:text-[#F1F3FA] placeholder-[#5B6278] placeholder:italic [color-scheme:light] dark:[color-scheme:dark] transition-all focus:outline-none focus:ring-4 ${
               leftIcon ? "pl-11" : ""
             } ${rightIcon ? "pr-11" : ""} ${className}`}
             {...props}
@@ -76,7 +76,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
         {label && (
           <label 
             htmlFor={uniqueId}
-            className="text-xs font-semibold text-slate-700 dark:text-slate-300 font-display tracking-tight"
+            className="text-[11px] font-bold text-[#A3AABF] uppercase tracking-wider font-display"
           >
             {label}
           </label>
@@ -84,11 +84,11 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
         <textarea
           id={uniqueId}
           ref={ref}
-          className={`w-full px-4 py-2.5 bg-white dark:bg-slate-900 border ${
+          className={`w-full px-4 py-2.5 min-h-[100px] bg-white dark:bg-slate-900 border ${
             error 
               ? "border-rose-500 focus:ring-rose-500/10 focus:border-rose-500" 
               : "border-slate-200 focus:ring-primary-500/10 focus:border-primary-500 dark:border-slate-800"
-          } rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 transition-all focus:outline-none focus:ring-4 min-h-[100px] ${className}`}
+          } rounded-xl text-sm text-slate-900 dark:text-[#F1F3FA] placeholder-[#5B6278] placeholder:italic transition-all focus:outline-none focus:ring-4 ${className}`}
           {...props}
         />
         {error && (

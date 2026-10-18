@@ -8,11 +8,18 @@ import { businessService } from "../../services/businessService";
 import { 
   LayoutDashboard, 
   FileText, 
+  FileClock,
+  Receipt,
+  FileMinus,
+  FilePlus,
+  Truck,
+  ShoppingCart,
   Users, 
   Package, 
   CreditCard, 
   TrendingDown, 
   BarChart3, 
+  Wallet,
   Settings, 
   LogOut, 
   Sun, 
@@ -41,8 +48,10 @@ import {
   FolderSync,
   AlertCircle,
   FlaskConical,
-  Crown
+  Crown,
+  Sparkles
 } from "lucide-react";
+import { subscriptionService, SubscriptionUsage } from "../../services/subscriptionService";
 import { GathexLogo } from "../ui/GathexLogo";
 import { Dialog } from "../ui/Dialog";
 import { Input } from "../ui/Input";
@@ -51,6 +60,7 @@ import { ThemeToggle } from "../ui/ThemeToggle";
 import { notificationService } from "../../services/notificationService";
 import { NotificationItem } from "../../types";
 import { AnimatePresence, motion } from "framer-motion";
+import { docTypeFromPath, resolveConfig } from "../../config/docTypeConfig";
 
 const formatRelativeTime = (date: Date) => {
   const now = new Date();
@@ -91,6 +101,17 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
+  const [usage, setUsage] = useState<SubscriptionUsage | null>(null);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (activeBusiness?.id) {
+      subscriptionService.getUsage(activeBusiness.id)
+        .then(setUsage)
+        .catch(console.error);
+    }
+  }, [activeBusiness]);
+
   // Sync businesses list in real-time
   useEffect(() => {
     if (!user) return;
@@ -115,26 +136,223 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     toast.success("Workspace Switched", `Active billing target updated to ${biz.name}.`);
   };
 
-  const navItems = [
-    { label: "Dashboard", path: "dashboard" as RoutePath, icon: <LayoutDashboard className="w-5 h-5" /> },
-    ...(isAdmin ? [{ label: "Admin Portal", path: "admin" as RoutePath, icon: <Crown className="w-5 h-5 text-purple-500 dark:text-purple-400" /> }] : []),
-    { label: "Workspaces", path: "businesses" as RoutePath, icon: <Building2 className="w-5 h-5" /> },
-    { label: "Customers", path: "customers" as RoutePath, icon: <Users className="w-5 h-5" /> },
-    { label: "Quotations", path: "quotations" as RoutePath, icon: <FileText className="w-5 h-5" /> },
-    { label: "Proforma", path: "proforma-invoices" as RoutePath, icon: <FileText className="w-5 h-5 opacity-70" /> },
-    { label: "Invoices", path: "invoices" as RoutePath, icon: <FileText className="w-5 h-5" /> },
-    { label: "Credit Notes", path: "credit-notes" as RoutePath, icon: <FileCode className="w-5 h-5 opacity-80" /> },
-    { label: "Debit Notes", path: "debit-notes" as RoutePath, icon: <FileCode className="w-5 h-5 opacity-80" /> },
-    { label: "Delivery Challans", path: "delivery-challans" as RoutePath, icon: <Package className="w-5 h-5" /> },
-    { label: "Purchase Orders", path: "purchase-orders" as RoutePath, icon: <Package className="w-5 h-5 opacity-70" /> },
-    { label: "Products", path: "products" as RoutePath, icon: <Package className="w-5 h-5" /> },
-    { label: "Payments", path: "payments" as RoutePath, icon: <CreditCard className="w-5 h-5" /> },
-    { label: "Reminders", path: "reminders" as RoutePath, icon: <Bell className="w-5 h-5" /> },
-    { label: "Reports & GST", path: "reports" as RoutePath, icon: <BarChart3 className="w-5 h-5" /> },
-    { label: "QA & E2E Testing", path: "qa-testing" as RoutePath, icon: <FlaskConical className="w-5 h-5" /> },
-    { label: "Settings", path: "settings" as RoutePath, icon: <Settings className="w-5 h-5" /> },
-    { label: "Profile", path: "profile" as RoutePath, icon: <UserIcon className="w-5 h-5" /> },
+  const salesRoutes: RoutePath[] = [
+    "quotations",
+    "proforma-invoices",
+    "invoices",
+    "credit-notes",
+    "debit-notes",
+    "delivery-challans",
+    "purchase-orders",
   ];
+
+  const [isSalesExpanded, setIsSalesExpanded] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash.replace(/^#\/?/, "").split("?")[0] as RoutePath;
+      if (salesRoutes.includes(hash)) {
+        return true;
+      }
+      try {
+        const saved = localStorage.getItem("gathex_sidebar_sales_expanded");
+        if (saved !== null) {
+          return JSON.parse(saved);
+        }
+      } catch (err) {
+        // Fallback gracefully
+      }
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    if (salesRoutes.includes(currentRoute)) {
+      setIsSalesExpanded(true);
+    }
+  }, [currentRoute]);
+
+  const toggleSalesGroup = () => {
+    setIsSalesExpanded((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("gathex_sidebar_sales_expanded", JSON.stringify(next));
+      } catch (err) {
+        console.error("Failed to persist sales group state:", err);
+      }
+      return next;
+    });
+  };
+
+  interface NavItem {
+    label: string;
+    path: RoutePath;
+    icon: React.ComponentType<{ className?: string }>;
+    iconClass?: string;
+  }
+
+  const dashboardItem: NavItem = {
+    label: "Dashboard",
+    path: "dashboard",
+    icon: LayoutDashboard,
+  };
+
+  const salesItems: NavItem[] = [
+    { label: "Quotations", path: "quotations", icon: FileText },
+    { label: "Proforma", path: "proforma-invoices", icon: FileClock },
+    { label: "Invoices", path: "invoices", icon: Receipt },
+    { label: "Credit Notes", path: "credit-notes", icon: FileMinus },
+    { label: "Debit Notes", path: "debit-notes", icon: FilePlus },
+    { label: "Delivery Challans", path: "delivery-challans", icon: Truck },
+    { label: "Purchase Orders", path: "purchase-orders", icon: ShoppingCart },
+  ];
+
+  const contactsCatalogItems: NavItem[] = [
+    { label: "Customers", path: "customers", icon: Users },
+    { label: "Products", path: "products", icon: Package },
+  ];
+
+  const moneyItems: NavItem[] = [
+    { label: "Payments", path: "payments", icon: CreditCard },
+    { label: "Reminders", path: "reminders", icon: Bell },
+    { label: "Expenses", path: "expenses", icon: Wallet },
+    { label: "Reports & GST", path: "reports", icon: BarChart3 },
+  ];
+
+  const accountItems: NavItem[] = [
+    { label: "Workspaces", path: "businesses", icon: Building2 },
+    { label: "Settings", path: "settings", icon: Settings },
+    { label: "Profile", path: "profile", icon: UserIcon },
+  ];
+
+  const adminItems: NavItem[] = [
+    { label: "Admin Portal", path: "admin", icon: Crown, iconClass: "text-purple-500 dark:text-purple-400" },
+    { label: "QA & E2E Testing", path: "qa-testing", icon: FlaskConical },
+  ];
+
+  const currentDocType = docTypeFromPath(currentRoute);
+  const isSalesRoute = salesRoutes.includes(currentRoute);
+  const currentDocCfg = isSalesRoute ? resolveConfig(currentDocType, activeBusiness?.invoicePreferences) : null;
+  const topBarCreateLabel = currentDocCfg?.createButton || "Create Invoice";
+
+  const handleTopBarCreate = () => {
+    if (isSalesRoute) {
+      window.dispatchEvent(new CustomEvent("gathex:create-document", { detail: { docType: currentDocType } }));
+    } else {
+      navigate("invoices");
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("gathex:create-document", { detail: { docType: "invoice" } }));
+      }, 100);
+    }
+  };
+
+  const renderNavItem = (item: NavItem, onItemClick?: () => void) => {
+    const isActive = currentRoute === item.path || (item.path !== "dashboard" && currentRoute.startsWith(item.path));
+    const IconComponent = item.icon;
+    return (
+      <button
+        key={item.path}
+        onClick={() => {
+          navigate(item.path);
+          if (onItemClick) onItemClick();
+        }}
+        className={`w-full flex items-center gap-3 px-3.5 h-10 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
+          isActive 
+            ? "bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 font-semibold" 
+            : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+        }`}
+      >
+        <span className={`w-5 h-5 flex items-center justify-center shrink-0 transition-colors ${
+          isActive 
+            ? "text-primary-600 dark:text-primary-400" 
+            : item.iconClass || "text-slate-400 dark:text-slate-500"
+        }`}>
+          <IconComponent className="w-5 h-5" />
+        </span>
+        <span className="truncate">{item.label}</span>
+        {isActive && (
+          <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary-600 dark:bg-primary-400 shrink-0" />
+        )}
+      </button>
+    );
+  };
+
+  const renderNavContent = (onItemClick?: () => void) => (
+    <div className="space-y-1">
+      {/* Dashboard sits above all groups with no label */}
+      {renderNavItem(dashboardItem, onItemClick)}
+
+      {/* SALES group - collapsible */}
+      <div>
+        <button
+          type="button"
+          onClick={toggleSalesGroup}
+          className="w-full flex items-center justify-between px-3.5 mt-4 mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#8B92A8] hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer select-none"
+          aria-expanded={isSalesExpanded}
+        >
+          <span>SALES</span>
+          <ChevronDown
+            className={`w-3.5 h-3.5 transition-transform duration-200 ${
+              isSalesExpanded ? "rotate-0" : "-rotate-90"
+            }`}
+          />
+        </button>
+        <AnimatePresence initial={false}>
+          {isSalesExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden space-y-1"
+            >
+              {salesItems.map((item) => renderNavItem(item, onItemClick))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* CONTACTS & CATALOG */}
+      <div>
+        <div className="px-3.5 mt-6 mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#8B92A8] select-none">
+          CONTACTS & CATALOG
+        </div>
+        <div className="space-y-1">
+          {contactsCatalogItems.map((item) => renderNavItem(item, onItemClick))}
+        </div>
+      </div>
+
+      {/* MONEY */}
+      <div>
+        <div className="px-3.5 mt-6 mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#8B92A8] select-none">
+          MONEY
+        </div>
+        <div className="space-y-1">
+          {moneyItems.map((item) => renderNavItem(item, onItemClick))}
+        </div>
+      </div>
+
+      {/* ACCOUNT */}
+      <div>
+        <div className="px-3.5 mt-6 mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#8B92A8] select-none">
+          ACCOUNT
+        </div>
+        <div className="space-y-1">
+          {accountItems.map((item) => renderNavItem(item, onItemClick))}
+        </div>
+      </div>
+
+      {/* ADMIN (only for admins) */}
+      {isAdmin && (
+        <div>
+          <div className="px-3.5 mt-6 mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#8B92A8] select-none">
+            ADMIN
+          </div>
+          <div className="space-y-1">
+            {adminItems.map((item) => renderNavItem(item, onItemClick))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col lg:flex-row relative">
@@ -142,40 +360,65 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="absolute top-0 right-0 w-full lg:w-3/4 h-96 bg-grid-pattern dark:bg-grid-pattern-dark opacity-10 pointer-events-none z-0" />
       
       {/* Sidebar for Desktop */}
-      <aside className="hidden lg:flex w-72 flex-shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800/80 flex-col justify-between z-20 shadow-sm relative">
+      <aside className="hidden lg:flex w-72 flex-shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800/80 flex-col h-screen sticky top-0 z-20 shadow-sm relative">
         {/* Top header */}
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800/60">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-800/60 shrink-0">
           <GathexLogo variant="full" className="w-9 h-9" />
         </div>
 
         {/* Navigation list */}
-        <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = currentRoute === item.path;
-            return (
-              <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
-                  isActive 
-                    ? "bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 font-semibold" 
-                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                }`}
-              >
-                <span className={`transition-colors ${isActive ? "text-primary-600 dark:text-primary-400" : "text-slate-400 dark:text-slate-500"}`}>
-                  {item.icon}
-                </span>
-                <span>{item.label}</span>
-                {isActive && (
-                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary-600 dark:bg-primary-400" />
-                )}
-              </button>
-            );
-          })}
+        <nav className="flex-1 overflow-y-auto min-h-0 [mask-image:linear-gradient(to_bottom,transparent,black_16px,black_calc(100%-16px),transparent)] px-4 py-4">
+          {renderNavContent()}
         </nav>
 
+        {/* Subscription Usage Widget */}
+        <div className="shrink-0 px-4 py-3 border-t border-slate-100 dark:border-slate-800/60 bg-gradient-to-br from-indigo-50/60 to-slate-50 dark:from-indigo-950/30 dark:to-slate-900/40">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Crown className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 font-display truncate">
+                {usage?.displayName || (profile?.subscriptionTier === 'growth' ? 'Growth Plan' : profile?.subscriptionTier === 'starter' ? 'Starter Plan' : 'Free Trial')}
+              </span>
+            </div>
+            <button 
+              onClick={() => setIsUpgradeModalOpen(true)}
+              className="text-[10px] font-extrabold text-indigo-600 dark:text-indigo-400 hover:underline uppercase tracking-wider cursor-pointer shrink-0 ml-1"
+            >
+              Upgrade
+            </button>
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400">
+              <span>Monthly Invoices</span>
+              <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
+                {usage?.invoicesUsed ?? 0} / {usage?.invoiceLimit !== null && usage?.invoiceLimit !== undefined ? usage.invoiceLimit : '∞'}
+              </span>
+            </div>
+
+            {usage?.invoiceLimit !== null && usage?.invoiceLimit !== undefined ? (
+              <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    ((usage.invoicesUsed / usage.invoiceLimit) >= 0.9) 
+                      ? 'bg-rose-500' 
+                      : ((usage.invoicesUsed / usage.invoiceLimit) >= 0.7) 
+                        ? 'bg-amber-500' 
+                        : 'bg-indigo-600'
+                  }`}
+                  style={{ width: `${Math.min(100, Math.max(0, (usage.invoicesUsed / usage.invoiceLimit) * 100))}%` }}
+                />
+              </div>
+            ) : (
+              <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-emerald-500" /> Unlimited Invoices Active
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Sidebar Footer User detail */}
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-950/20">
+        <div className="shrink-0 p-4 border-t border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-950/20">
           <div className="flex items-center gap-3 p-2 rounded-xl justify-between">
             <div className="flex items-center gap-3 min-w-0">
               <div className="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-950 flex items-center justify-center text-primary-700 dark:text-primary-300 font-semibold font-display shrink-0 font-sans">
@@ -204,7 +447,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 z-10 relative">
         {/* Top Header Navbar */}
-        <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/60 h-18 px-4 lg:px-8 flex items-center justify-between">
+        <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/60 h-18 px-4 md:px-6 lg:px-8 flex items-center justify-between">
           {/* Left: Mobile trigger & Active Business */}
           <div className="flex items-center gap-3">
             <motion.button
@@ -245,20 +488,21 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
 
           {/* Right: Actions, search, notifications, theme toggler, user */}
-          <div className="flex items-center gap-2 lg:gap-4">
+          <div className="flex items-center gap-2 md:gap-3 lg:gap-4">
             {/* Theme Toggle */}
             <ThemeToggle />
 
             {/* Quick Create shortcut */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.15 }}
-              onClick={() => navigate("invoices")}
-              className="hidden sm:flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-all shadow-md shadow-primary-600/10 hover:shadow-primary-600/15 cursor-pointer"
-            >
-              <Plus className="w-4 h-4" /> Create Invoice
-            </motion.button>
+            <div className="hidden sm:block">
+              <Button
+                size="sm"
+                variant="primary"
+                icon={<Plus className="w-4 h-4" />}
+                onClick={handleTopBarCreate}
+              >
+                {topBarCreateLabel}
+              </Button>
+            </div>
 
             {/* Notifications */}
             <div className="relative">
@@ -477,7 +721,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* Scrollable page body */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentRoute}
@@ -521,27 +765,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
 
             {/* Navigation links */}
-            <nav className="flex-1 space-y-1.5 overflow-y-auto">
-              {navItems.map((item) => {
-                const isActive = currentRoute === item.path;
-                return (
-                  <button
-                    key={item.path}
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      navigate(item.path);
-                    }}
-                    className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium ${
-                      isActive 
-                        ? "bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 font-semibold" 
-                        : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50"
-                    }`}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
+            <nav className="flex-1 overflow-y-auto pr-1 -mr-1">
+              {renderNavContent(() => setIsMobileMenuOpen(false))}
             </nav>
 
             {/* Bottom logout */}
@@ -643,6 +868,67 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             <Button variant="primary" type="button" onClick={() => setIsBizModalOpen(false)}>
               Close
             </Button>
+          </div>
+        </div>
+      </Dialog>
+      {/* Plan Upgrade Informational Modal */}
+      <Dialog isOpen={isUpgradeModalOpen} onClose={() => setIsUpgradeModalOpen(false)} title="Upgrade Your Gathex Plan" size="lg">
+        <div className="space-y-6 py-2">
+          <div className="text-center max-w-lg mx-auto space-y-2">
+            <div className="inline-flex p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 mb-1">
+              <Crown className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white font-display">
+              Scale Your Invoicing Without Limits
+            </h3>
+            <p className="text-xs text-slate-500">
+              Upgrade your GATHEX plan to unlock additional invoice limits, multi-workspace management, and automated email/SMS reminders.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Free */}
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 space-y-3">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Free Trial</span>
+              <div className="text-2xl font-extrabold text-slate-900 dark:text-white">₹0<span className="text-xs text-slate-400 font-normal">/mo</span></div>
+              <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1.5 pt-2 border-t border-slate-200/60 dark:border-slate-800">
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-indigo-500" /> 10 Invoices / mo</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-indigo-500" /> 1 Workspace</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-indigo-500" /> GST Billing</li>
+              </ul>
+            </div>
+
+            {/* Starter */}
+            <div className="p-4 rounded-xl border-2 border-indigo-500 bg-indigo-50/30 dark:bg-indigo-950/20 space-y-3 relative">
+              <span className="absolute -top-2.5 right-3 bg-indigo-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Popular</span>
+              <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Starter</span>
+              <div className="text-2xl font-extrabold text-slate-900 dark:text-white">₹499<span className="text-xs text-slate-400 font-normal">/mo</span></div>
+              <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1.5 pt-2 border-t border-indigo-200/60 dark:border-indigo-900">
+                <li className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200"><Check className="w-3.5 h-3.5 text-indigo-500" /> 100 Invoices / mo</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-indigo-500" /> 2 Workspaces</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-indigo-500" /> Email & SMS Reminders</li>
+              </ul>
+            </div>
+
+            {/* Growth */}
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 space-y-3">
+              <span className="text-xs font-bold text-amber-500 uppercase tracking-wider">Growth</span>
+              <div className="text-2xl font-extrabold text-slate-900 dark:text-white">₹999<span className="text-xs text-slate-400 font-normal">/mo</span></div>
+              <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1.5 pt-2 border-t border-slate-200/60 dark:border-slate-800">
+                <li className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200"><Check className="w-3.5 h-3.5 text-emerald-500" /> Unlimited Invoices</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-500" /> Up to 5 Workspaces</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-500" /> Priority Support</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl text-center text-xs text-slate-500 space-y-1">
+            <p className="font-semibold text-slate-700 dark:text-slate-300">Need instant tier activation?</p>
+            <p>During trial phase, contact support or administrator to update your profile tier directly.</p>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <Button variant="outline" onClick={() => setIsUpgradeModalOpen(false)}>Close</Button>
           </div>
         </div>
       </Dialog>

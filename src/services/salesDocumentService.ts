@@ -1287,7 +1287,9 @@ export const salesDocumentService = {
       terms_conditions: data.termsConditions || null,
       vehicle_details: data.vehicleDetails || null,
       delivery_address: data.deliveryAddress || null,
-      reason: data.reason || null
+      reason: data.reason || null,
+      place_of_supply: data.placeOfSupply || null,
+      linked_invoice_id: data.linkedInvoiceId || null
     };
 
     const { data: res, error } = await supabase.from('sales_documents').insert(payload).select('id').single();
@@ -1311,6 +1313,8 @@ export const salesDocumentService = {
     if (data.customerDetails !== undefined) payload.customer_details = data.customerDetails;
     if (data.issueDate !== undefined) payload.issue_date = new Date(data.issueDate).toISOString().split('T')[0];
     if (data.dueDate !== undefined) payload.due_date = new Date(data.dueDate).toISOString().split('T')[0];
+    if (data.placeOfSupply !== undefined) payload.place_of_supply = data.placeOfSupply;
+    if (data.linkedInvoiceId !== undefined) payload.linked_invoice_id = data.linkedInvoiceId;
     if (data.subTotal !== undefined) payload.sub_total = Number(data.subTotal);
     if (data.totalDiscount !== undefined) payload.total_discount = Number(data.totalDiscount);
     if (data.totalTaxableAmount !== undefined) payload.total_taxable_amount = Number(data.totalTaxableAmount);

@@ -144,7 +144,7 @@ export function ReportsView() {
         termsConditions: d.terms_conditions
       }));
 
-      downloadGSTR1CSV(invoicesList, activeBusiness.gstin || "27AAECG8492C1Z2");
+      downloadGSTR1CSV(invoicesList, activeBusiness?.gstin || "");
       toast.success("Excel Sheet Downloaded", "GSTR-1 outward sales spreadsheet downloaded successfully.");
     } catch (error) {
       console.error(error);
@@ -172,10 +172,10 @@ export function ReportsView() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold font-display text-slate-900 dark:text-white">Tax Reports & GST</h1>
+          <h1 className="text-xl md:text-2xl font-extrabold font-display text-slate-900 dark:text-white">Tax Reports & GST</h1>
           <p className="text-sm text-slate-500">Auto-calculate CGST, SGST, and IGST components. Generate Government compliant GSTR returns.</p>
         </div>
         

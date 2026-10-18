@@ -14,7 +14,7 @@ export function Card({ children, className = "", onClick, hoverable = true, ...p
       onClick={onClick}
       whileHover={hoverable ? { y: -2 } : undefined}
       transition={{ duration: 0.15 }}
-      className={`glass-panel rounded-2xl shadow-sm hover:shadow-md p-6 overflow-hidden transition-shadow duration-200 ${className} ${onClick ? "cursor-pointer" : ""}`}
+      className={`glass-panel rounded-2xl shadow-sm hover:shadow-md p-4 md:p-5 lg:p-6 overflow-hidden transition-shadow duration-200 ${className} ${onClick ? "cursor-pointer" : ""}`}
       {...props}
     >
       {children}

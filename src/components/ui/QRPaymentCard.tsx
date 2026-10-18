@@ -28,7 +28,7 @@ export function QRPaymentCard({ upiString, payeeName, upiId, size = 130 }: QRPay
           value={upiString} 
           size={size} 
           level="M" 
-          includeMargin={false} 
+          includeMargin={true} 
         />
       </div>
 
